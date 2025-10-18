@@ -1,7 +1,7 @@
 // Theirs
 import React, {useEffect} from 'react';
 import {format} from 'date-fns';
-import {Lock, Unlock, Trophy, X} from 'lucide-react';
+import {Lock, Unlock, Trophy, X, Users} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Ours
@@ -11,10 +11,11 @@ import Layout from '../../containers/Layout';
 import Issue from '../Issue';
 import withAuthentication from '../../containers/withAuthentication';
 import {useParams} from 'react-router-dom';
-import {child, onValue, set, update} from 'firebase/database';
+import {child, onValue, set, update, onDisconnect, remove} from 'firebase/database';
 import shortid from 'shortid';
 import IssueCreator from './IssueCreator';
 import ModalActions from './ModalActions';
+import * as dbRefs from '../../firebase/db';
 
 
 const PokerTable = () => {
@@ -30,6 +31,7 @@ const PokerTable = () => {
 		issues: [],
 		currentIssue: false,
 		nextIssue: false,
+		participants: [],
 	});
 	const pokerTableRef = db.pokerTable(userId, tableId);
 	const ptIssuesRef = db.pokerTableIssuesRoot(
@@ -39,7 +41,59 @@ const PokerTable = () => {
 
 	useEffect(() => {
 		loadPokerTable();
+		setupParticipantTracking();
 	}, []);
+
+	const setupParticipantTracking = () => {
+		const participantsRef = dbRefs.pokerTableParticipants(userId, tableId);
+		const currentParticipantRef = dbRefs.pokerTableParticipant(userId, tableId, currentUser.uid);
+
+		// Add current user to participants
+		const participantData = {
+			uid: currentUser.uid,
+			displayName: currentUser.displayName || 'Anonymous',
+			joinedAt: new Date().toISOString(),
+			isHost: userId === currentUser.uid,
+		};
+
+		set(currentParticipantRef, participantData)
+			.catch((error) => console.error('Error adding participant:', error));
+
+		// Remove on disconnect
+		onDisconnect(currentParticipantRef).remove();
+
+		// Listen to participant changes
+		onValue(participantsRef, (snapshot) => {
+			if (snapshot.exists()) {
+				const participantsData = snapshot.val();
+				const participantsList = Object.keys(participantsData).map(key => ({
+					...participantsData[key],
+					id: key,
+				}));
+				// Sort: host first, then by join time
+				participantsList.sort((a, b) => {
+					if (a.isHost && !b.isHost) return -1;
+					if (!a.isHost && b.isHost) return 1;
+					return a.joinedAt > b.joinedAt ? 1 : -1;
+				});
+				setState(prevState => ({
+					...prevState,
+					participants: participantsList,
+				}));
+			} else {
+				setState(prevState => ({
+					...prevState,
+					participants: [],
+				}));
+			}
+		});
+
+		// Cleanup on unmount
+		return () => {
+			remove(currentParticipantRef)
+				.catch((error) => console.error('Error removing participant:', error));
+		};
+	};
 
 	const handleCreateIssue = (newIssueName) => {
 		const uid = shortid.generate();
@@ -153,8 +207,42 @@ const PokerTable = () => {
 					<IssueCreator
 						onClick={handleCreateIssue}
 						tableName={state.pokerTable.tableName}
+						ownerName={state.pokerTable.ownerName}
+						created={state.pokerTable.created}
 					/>
 				</div>
+
+				{/* Active Participants */}
+				{state.participants.length > 0 && (
+					<div className="card">
+						<div className="flex items-center gap-2 mb-4">
+							<Users size={20} className="text-primary" />
+							<h2 className="text-xl font-bold">
+								Active Participants ({state.participants.length})
+							</h2>
+						</div>
+						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+							{state.participants.map((participant) => (
+								<div
+									key={participant.id}
+									className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg"
+								>
+									<div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm">
+										{participant.displayName.charAt(0).toUpperCase()}
+									</div>
+									<div className="flex-1 min-w-0">
+										<p className="text-sm font-medium text-gray-900 truncate">
+											{participant.displayName}
+										</p>
+										{participant.isHost && (
+											<p className="text-xs text-primary font-medium">HOST</p>
+										)}
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
 
 				{/* Issues List */}
 				<div className="card">

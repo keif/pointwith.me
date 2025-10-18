@@ -29,6 +29,8 @@ const Dashboard = () => {
 		const data = {
 			created: new Date().toISOString(),
 			tableName: newPokerTableName,
+			ownerId: currentUser.uid,
+			ownerName: currentUser.displayName || 'Anonymous',
 		};
 		set(pRef, data)
 			.then(() => console.log('Updated successfully'))

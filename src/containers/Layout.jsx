@@ -16,8 +16,10 @@ const defaultProps = {
 const Layout = ({children, contentCenter}) => {
 	const {userId} = useParams();
 	const currentUser = auth.auth.currentUser;
-	const isHost = userId === currentUser?.uid
-	const userDisplay = `${currentUser?.displayName || ``} - ${isHost ? `HOST` : `ATTENDEE`}`;
+	const isHost = userId === currentUser?.uid;
+	const userDisplay = userId
+		? `${currentUser?.displayName || ``} - ${isHost ? `HOST` : `ATTENDEE`}`
+		: currentUser?.displayName || ``;
 
 	return (
 		<div className="min-h-screen flex flex-col">

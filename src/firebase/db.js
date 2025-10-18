@@ -21,3 +21,7 @@ export const votesRoot = (tid) => ref(db, `votes/${tid}`);
 //Issues
 export const pokerTableIssuesRoot = (userId, tid) => ref(db, `pokerTables/${userId}/${tid}/issues`);
 export const pokerTableIssue = (userId, tid, iid) => ref(db, `pokerTables/${userId}/${tid}/issues/${iid}`);
+
+//Participants
+export const pokerTableParticipants = (userId, tid) => ref(db, `pokerTables/${userId}/${tid}/participants`);
+export const pokerTableParticipant = (userId, tid, participantId) => ref(db, `pokerTables/${userId}/${tid}/participants/${participantId}`);
