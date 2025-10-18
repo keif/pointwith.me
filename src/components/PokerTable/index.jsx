@@ -181,8 +181,8 @@ const PokerTable = () => {
 					});
 				}
 				newIssuesList.sort((i1, i2) => {
-					if (i1.created > i2.created) return 1;
-					if (i2.created > i1.created) return -1;
+					if (i1.created > i2.created) return -1;
+					if (i2.created > i1.created) return 1;
 					return 0;
 				});
 
