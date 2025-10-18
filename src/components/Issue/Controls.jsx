@@ -24,12 +24,26 @@ const Controls = ({isLocked, issue, showVotes, votes, finalScore}) => {
 	};
 
 	const handleSetFinalScore = (score) => {
-		update(issueRef, {'finalScore': score});
-		setCustomScore('');
+		console.log('Setting final score:', score);
+		update(issueRef, {'finalScore': score})
+			.then(() => {
+				console.log('Final score set successfully');
+				setCustomScore('');
+			})
+			.catch((error) => {
+				console.error('Error setting final score:', error);
+				alert('Error setting final score: ' + error.message);
+			});
 	};
 
 	const handleClearFinalScore = () => {
-		update(issueRef, {'finalScore': null});
+		console.log('Clearing final score');
+		update(issueRef, {'finalScore': null})
+			.then(() => console.log('Final score cleared'))
+			.catch((error) => {
+				console.error('Error clearing final score:', error);
+				alert('Error clearing final score: ' + error.message);
+			});
 	};
 
 	const average = calculateAverage(votes);
@@ -102,30 +116,33 @@ const Controls = ({isLocked, issue, showVotes, votes, finalScore}) => {
 						) : (
 							<>
 								<Header as="h4">Set Final Score</Header>
-								<Button.Group>
+								<div style={{marginBottom: '1em'}}>
 									<Button
 										color="teal"
+										size="large"
 										onClick={() => handleSetFinalScore(suggestedScore)}
 									>
+										<Icon name="check"/>
 										Use Suggested ({suggestedScore})
 									</Button>
-									<Button.Or/>
+								</div>
+								<div>
 									<Input
 										type="number"
-										placeholder="Custom..."
+										placeholder="Enter custom score..."
 										value={customScore}
 										onChange={(e) => setCustomScore(e.target.value)}
-										action={
-											<Button
-												color="blue"
-												disabled={!customScore}
-												onClick={() => handleSetFinalScore(parseFloat(customScore))}
-											>
-												Set
-											</Button>
-										}
+										style={{marginRight: '0.5em'}}
 									/>
-								</Button.Group>
+									<Button
+										color="blue"
+										disabled={!customScore || customScore === ''}
+										onClick={() => handleSetFinalScore(parseFloat(customScore))}
+									>
+										<Icon name="save"/>
+										Set Custom Score
+									</Button>
+								</div>
 							</>
 						)}
 					</Container>
