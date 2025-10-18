@@ -15,32 +15,41 @@ export const isPrime = (num) => {
 };
 
 /**
- * Find the nearest prime number to a given number
+ * Round to prime number with custom rounding logic
+ * - Decimal <= 0.2: round down (e.g., 4.2 -> 4)
+ * - Decimal >= 0.3: round up (e.g., 4.3 -> 5)
+ * - Then find next prime >= rounded value
  * @param {number} num - The number to round
- * @returns {number} - The nearest prime number
+ * @returns {number} - The next prime number
  */
-export const nearestPrime = (num) => {
-    if (num <= 2) return 2;
+export const roundUpToPrime = (num) => {
+    // Special case: very low values round to 0
+    if (num < 0.3) return 0;
 
-    const rounded = Math.round(num);
+    // If less than 2, round up to 2 (first prime)
+    if (num < 2) return 2;
 
-    // Check if the rounded number itself is prime
-    if (isPrime(rounded)) return rounded;
+    // Custom rounding: decimal <= 0.2 rounds down, >= 0.3 rounds up
+    const floor = Math.floor(num);
+    const decimal = num - floor;
+    const rounded = decimal <= 0.2 ? floor : Math.ceil(num);
 
-    // Search outward from the rounded number
-    let lower = rounded - 1;
-    let upper = rounded + 1;
-
-    while (lower > 1 || upper < 1000) {
-        if (lower > 1 && isPrime(lower)) return lower;
-        if (isPrime(upper)) return upper;
-        lower--;
-        upper++;
+    // Find the next prime number >= rounded value
+    let candidate = rounded;
+    while (candidate < 1000) {
+        if (isPrime(candidate)) return candidate;
+        candidate++;
     }
 
     // Fallback (should never reach here for reasonable numbers)
     return rounded;
 };
+
+/**
+ * Alias for backward compatibility
+ * @deprecated Use roundUpToPrime instead
+ */
+export const nearestPrime = roundUpToPrime;
 
 /**
  * Generate list of prime numbers up to a maximum value
