@@ -199,11 +199,13 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 							return (
 								<div
 									key={participant.id}
+									onClick={isCurrentUser && onToggleRole ? onToggleRole : undefined}
 									className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
 										isCurrentUser
-											? 'bg-primary bg-opacity-10 border border-primary'
+											? 'bg-primary bg-opacity-10 border border-primary cursor-pointer hover:bg-primary hover:bg-opacity-20 transition-colors'
 											: 'bg-gray-100'
 									}`}
+									title={isCurrentUser ? 'Click to toggle role' : ''}
 								>
 									<div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
 										isCurrentUser
@@ -276,37 +278,17 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 				</div>
 			</div>
 			{!issueState.isLocked && !isSpectator && (
-				<>
-					<VotingBlock
-						isLocked={issueState.isLocked}
-						onClick={handleSelectVote}
-						userVote={votesState.userVote}
-					/>
-					{onToggleRole && (
-						<div className="text-center mt-4">
-							<button
-								onClick={onToggleRole}
-								className="text-sm text-gray-500 hover:text-gray-700 underline"
-							>
-								Switch to Spectator Mode
-							</button>
-						</div>
-					)}
-				</>
+				<VotingBlock
+					isLocked={issueState.isLocked}
+					onClick={handleSelectVote}
+					userVote={votesState.userVote}
+				/>
 			)}
 			{isSpectator && !issueState.isLocked && (
 				<div className="text-center py-6">
-					<p className="text-gray-600 text-sm mb-3">
-						You are watching as a spectator.
+					<p className="text-gray-500 text-sm">
+						You are watching as a spectator. Click your name above to switch to voter mode.
 					</p>
-					{onToggleRole && (
-						<button
-							onClick={onToggleRole}
-							className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
-						>
-							Switch to Voter Mode
-						</button>
-					)}
 				</div>
 			)}
 		</div>

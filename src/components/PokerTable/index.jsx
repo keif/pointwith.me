@@ -254,22 +254,11 @@ const PokerTable = () => {
 				{/* Active Participants */}
 				{state.participants.length > 0 && (
 					<div className="card">
-						<div className="flex items-center justify-between mb-4">
-							<div className="flex items-center gap-2">
-								<Users size={20} className="text-primary" />
-								<h2 className="text-xl font-bold">
-									Active Participants ({state.participants.length})
-								</h2>
-							</div>
-							{userRole && (
-								<button
-									onClick={handleToggleRole}
-									className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-								>
-									<RefreshCw size={16} />
-									Switch to {userRole === 'voter' ? 'Spectator' : 'Voter'}
-								</button>
-							)}
+						<div className="flex items-center gap-2 mb-4">
+							<Users size={20} className="text-primary" />
+							<h2 className="text-xl font-bold">
+								Active Participants ({state.participants.length})
+							</h2>
 						</div>
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
 							{state.participants.map((participant) => {
@@ -277,11 +266,13 @@ const PokerTable = () => {
 								return (
 									<div
 										key={participant.id}
+										onClick={isCurrentUser ? handleToggleRole : undefined}
 										className={`flex items-center gap-2 p-3 rounded-lg ${
 											isCurrentUser
-												? 'bg-primary bg-opacity-10 border-2 border-primary'
+												? 'bg-primary bg-opacity-10 border-2 border-primary cursor-pointer hover:bg-primary hover:bg-opacity-20 transition-colors'
 												: 'bg-gray-50'
 										}`}
+										title={isCurrentUser ? 'Click to toggle role' : ''}
 									>
 										<div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
 											isCurrentUser ? 'bg-primary text-white ring-2 ring-primary ring-offset-2' : 'bg-primary text-white'
