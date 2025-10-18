@@ -10,7 +10,7 @@ import {auth} from '../../firebase';
 const Login = () => {
 	const navigate = useNavigate();
 	useEffect(() => {
-		auth.auth.onAuthStateChanged(user => {
+		const unsubscribe = auth.auth.onAuthStateChanged(user => {
 			if (user) {
 				const entryPoint = store.get('entryPoint');
 				if (entryPoint) {
@@ -19,11 +19,12 @@ const Login = () => {
 				} else {
 					navigate('/dashboard');
 				}
-			} else {
-				navigate('/');
 			}
+			// Don't navigate to '/' if no user - let them stay on login page
 		});
-	}, []);
+
+		return () => unsubscribe();
+	}, [navigate]);
 
 	return (
 		<Layout>
