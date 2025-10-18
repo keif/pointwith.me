@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Card, Container, Header, Loader, Segment,} from 'semantic-ui-react';
+import {Card, Container, Header, Icon, Loader, Segment,} from 'semantic-ui-react';
 import {auth, db} from '../../firebase';
 import './issue.css';
 import {useParams} from 'react-router-dom';
