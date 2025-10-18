@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Trophy, Loader2, CheckCircle, Circle} from 'lucide-react';
+import {Trophy, Loader2, CheckCircle, Circle, Eye} from 'lucide-react';
 import toast from 'react-hot-toast';
 import {auth, db} from '../../firebase';
 import './issue.css';
@@ -169,13 +169,14 @@ const Issue = ({issue, participants = [], userRole = 'voter'}) => {
 		);
 	}
 
-	// Get participants with vote status (exclude spectators)
-	const voters = participants.filter(p => p.role !== 'spectator');
-	const participantsWithVotes = voters.map(participant => {
+	// Get participants with vote status
+	const participantsWithVotes = participants.map(participant => {
 		const hasVoted = votesState.votes.some(v => v.userId === participant.id);
+		const isSpectatorRole = participant.role === 'spectator';
 		return {
 			...participant,
-			hasVoted
+			hasVoted,
+			isSpectatorRole
 		};
 	});
 
@@ -215,7 +216,12 @@ const Issue = ({issue, participants = [], userRole = 'voter'}) => {
 										{participant.displayName}
 										{isCurrentUser && <span className="text-primary ml-1">(You)</span>}
 									</span>
-									{participant.hasVoted ? (
+									{participant.isSpectatorRole ? (
+										<div className="flex items-center gap-1 text-xs text-gray-500">
+											<Eye size={14} />
+											<span>Spectator</span>
+										</div>
+									) : participant.hasVoted ? (
 										<CheckCircle size={16} className="text-success" />
 									) : (
 										<Circle size={16} className="text-gray-400" />
