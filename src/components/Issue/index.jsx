@@ -16,6 +16,7 @@ const Issue = ({issue}) => {
 		isLocked: false,
 		showVotes: false,
 		title: '',
+		finalScore: null,
 	});
 	const [votesState, setVotesState] = useState({
 		isLoaded: false,
@@ -48,6 +49,7 @@ const Issue = ({issue}) => {
 				title: issue.title,
 				isLocked: issue.isLocked || false,
 				showVotes: issue.showVotes || false,
+				finalScore: issue.finalScore !== undefined ? issue.finalScore : null,
 				isLoaded: true,
 			};
 			setIssueState(newState);
@@ -143,12 +145,20 @@ const Issue = ({issue}) => {
 	return (
 		<Container textAlign="center" id="issue">
 			<Header as="h1">{issueState.title}</Header>
+			{issueState.finalScore !== null && issueState.finalScore !== undefined && (
+				<Header as="h2" color="teal">
+					<Icon name="trophy"/>
+					Final Score: {issueState.finalScore}
+				</Header>
+			)}
 			<Segment stacked>
 				{(isTableOwner) ?
 					<Controls
 						isLocked={issueState.isLocked}
 						issue={issue}
 						showVotes={issueState.showVotes}
+						votes={votesState.votes}
+						finalScore={issueState.finalScore}
 					/> : null}
 				<Card.Group
 					itemsPerRow={4}

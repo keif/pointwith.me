@@ -20,7 +20,7 @@ const PokerTable = () => {
 	const {userId, tableId} = useParams();
 	const currentUser = auth.auth.currentUser;
 	const issuesClient = issues.createClient(
-		currentUser.uid,
+		userId,  // Use table owner's ID from URL, not current user
 		tableId
 	);
 	const [state, setState] = React.useState({
@@ -32,7 +32,7 @@ const PokerTable = () => {
 	});
 	const pokerTableRef = db.pokerTable(userId, tableId);
 	const ptIssuesRef = db.pokerTableIssuesRoot(
-		currentUser.uid,
+		userId,  // Use table owner's ID from URL, not current user
 		tableId
 	);
 
@@ -142,6 +142,15 @@ const PokerTable = () => {
 									<List.Header>
 										<Icon name={s.isLocked ? 'lock' : 'unlock'}/>
 										{s.title}
+										{s.finalScore !== null && s.finalScore !== undefined && (
+											<>
+												{' '}
+												<Icon name="trophy" color="yellow" size="small"/>
+												<span style={{color: '#00b5ad', fontWeight: 'bold'}}>
+													{s.finalScore}
+												</span>
+											</>
+										)}
 									</List.Header>
 									<List.Description>
 										Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
