@@ -1,10 +1,17 @@
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
-export const mockedNavigator = jest.fn();
+// Make 'jest' available as an alias for 'vi' for compatibility with existing tests
+globalThis.jest = vi;
 
-jest.mock("react-router-dom", () => ({
-	...jest.requireActual("react-router-dom"),
-	useParams: jest.fn(),
-	usePathName: jest.fn(),
-	useNavigate: () => mockedNavigator
-}));
+export const mockedNavigator = vi.fn();
+
+vi.mock("react-router-dom", async () => {
+	const actual = await vi.importActual("react-router-dom");
+	return {
+		...actual,
+		useParams: vi.fn(),
+		usePathName: vi.fn(),
+		useNavigate: () => mockedNavigator
+	};
+});
