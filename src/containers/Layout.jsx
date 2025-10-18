@@ -76,7 +76,7 @@ const Layout = ({children, contentCenter}) => {
 							<Twitter size={20} />
 						</a>
 						<a
-							href="https://github.com/philpalmieri/pointwith.me"
+							href="https://github.com/keif/pointwith.me"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="hover:text-primary transition-colors"
