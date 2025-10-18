@@ -9,33 +9,42 @@ export default WrappedComponent => {
   const WithAuthentication = (props) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [providerData, setProviderData] = useState([]);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-      auth.auth.onAuthStateChanged(user => {
-        if (user) {
-          setProviderData(user.providerData);
+      const unsubscribe = auth.auth.onAuthStateChanged(currentUser => {
+        if (currentUser) {
+          setUser(currentUser);
+          setLoading(false);
         } else {
           store.set('entryPoint', location.pathname);
           navigate('/');
         }
       });
-    }, [])
 
-    if (providerData.length > 0) {
-      return (
-          <WrappedComponent
-              {...props}
-              providerData={providerData}
-          />
-      )
-    } else {
+      return () => unsubscribe();
+    }, [location.pathname, navigate]);
+
+    if (loading) {
       return (
         <Delay wait={250}>
           <p>Loading...</p>
         </Delay>
       );
     }
+
+    if (user) {
+      return (
+        <WrappedComponent
+          {...props}
+          providerData={user.providerData}
+          currentUser={user}
+        />
+      );
+    }
+
+    return null;
   }
 
   return WithAuthentication;
