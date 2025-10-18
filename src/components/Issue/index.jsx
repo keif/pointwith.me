@@ -276,11 +276,23 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 				</div>
 			</div>
 			{!issueState.isLocked && !isSpectator && (
-				<VotingBlock
-					isLocked={issueState.isLocked}
-					onClick={handleSelectVote}
-					userVote={votesState.userVote}
-				/>
+				<>
+					<VotingBlock
+						isLocked={issueState.isLocked}
+						onClick={handleSelectVote}
+						userVote={votesState.userVote}
+					/>
+					{onToggleRole && (
+						<div className="text-center mt-4">
+							<button
+								onClick={onToggleRole}
+								className="text-sm text-gray-500 hover:text-gray-700 underline"
+							>
+								Switch to Spectator Mode
+							</button>
+						</div>
+					)}
+				</>
 			)}
 			{isSpectator && !issueState.isLocked && (
 				<div className="text-center py-6">
