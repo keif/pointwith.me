@@ -373,7 +373,7 @@ const PokerTable = () => {
 				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-16 overflow-y-auto">
 					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-16">
 						<div className="p-6">
-							<Issue issue={state.currentIssue} participants={state.participants} userRole={userRole} />
+							<Issue issue={state.currentIssue} participants={state.participants} userRole={userRole} onToggleRole={handleToggleRole} />
 						</div>
 						{(userId === currentUser.uid) && (
 							<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />

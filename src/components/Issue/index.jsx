@@ -8,7 +8,7 @@ import {child, onValue, update} from 'firebase/database';
 import VotingBlock from './VotingBlock';
 import Controls from './Controls';
 
-const Issue = ({issue, participants = [], userRole = 'voter'}) => {
+const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => {
 	const {userId, tableId} = useParams();
 	const currentUser = auth.auth.currentUser;
 	const isTableOwner = userId === currentUser.uid;
@@ -284,9 +284,17 @@ const Issue = ({issue, participants = [], userRole = 'voter'}) => {
 			)}
 			{isSpectator && !issueState.isLocked && (
 				<div className="text-center py-6">
-					<p className="text-gray-500 text-sm">
-						You are watching as a spectator. Switch to voter mode to participate in voting.
+					<p className="text-gray-600 text-sm mb-3">
+						You are watching as a spectator.
 					</p>
+					{onToggleRole && (
+						<button
+							onClick={onToggleRole}
+							className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
+						>
+							Switch to Voter Mode
+						</button>
+					)}
 				</div>
 			)}
 		</div>
