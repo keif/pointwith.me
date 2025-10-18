@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Trophy, Loader2} from 'lucide-react';
+import {Trophy, Loader2, CheckCircle, Circle} from 'lucide-react';
 import toast from 'react-hot-toast';
 import {auth, db} from '../../firebase';
 import './issue.css';
@@ -8,7 +8,7 @@ import {child, onValue, update} from 'firebase/database';
 import VotingBlock from './VotingBlock';
 import Controls from './Controls';
 
-const Issue = ({issue}) => {
+const Issue = ({issue, participants = []}) => {
 	const {userId, tableId} = useParams();
 	const currentUser = auth.auth.currentUser;
 	const isTableOwner = userId === currentUser.uid;
@@ -168,6 +168,15 @@ const Issue = ({issue}) => {
 		);
 	}
 
+	// Get participants with vote status
+	const participantsWithVotes = participants.map(participant => {
+		const hasVoted = votesState.votes.some(v => v.userId === participant.id);
+		return {
+			...participant,
+			hasVoted
+		};
+	});
+
 	return (
 		<div className="text-center" id="issue">
 			<h1 className="text-4xl font-bold mb-4">{issueState.title}</h1>
@@ -177,6 +186,45 @@ const Issue = ({issue}) => {
 					<span className="font-semibold">Final Score: {issueState.finalScore}</span>
 				</div>
 			)}
+
+			{/* Participants Vote Status */}
+			{participants.length > 0 && (
+				<div className="mb-6">
+					<div className="flex items-center justify-center gap-4 flex-wrap">
+						{participantsWithVotes.map((participant) => {
+							const isCurrentUser = participant.id === currentUser.uid;
+							return (
+								<div
+									key={participant.id}
+									className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+										isCurrentUser
+											? 'bg-primary bg-opacity-10 border border-primary'
+											: 'bg-gray-100'
+									}`}
+								>
+									<div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+										isCurrentUser
+											? 'bg-primary text-white ring-1 ring-primary ring-offset-1'
+											: 'bg-gray-400 text-white'
+									}`}>
+										{participant.displayName.charAt(0).toUpperCase()}
+									</div>
+									<span className="text-sm font-medium">
+										{participant.displayName}
+										{isCurrentUser && <span className="text-primary ml-1">(You)</span>}
+									</span>
+									{participant.hasVoted ? (
+										<CheckCircle size={16} className="text-success" />
+									) : (
+										<Circle size={16} className="text-gray-400" />
+									)}
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
+
 			<div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
 				{(isTableOwner) && (
 					<Controls
@@ -187,20 +235,36 @@ const Issue = ({issue}) => {
 						finalScore={issueState.finalScore}
 					/>
 				)}
-				<div className="grid grid-cols-4 gap-4 mt-6" id="voteCards">
-					{votesState.votes?.map((v) => (
-						<div
-							key={v.userId}
-							className={`
-								aspect-square flex items-center justify-center text-2xl font-bold rounded-lg
-								${(votesState.mostVotes === v.vote && issueState.showVotes)
-									? 'bg-success text-white border-2 border-success'
-									: 'bg-primary text-white border-2 border-primary'}
-							`}
-						>
-							{(issueState.showVotes) ? v.vote : '?'}
-						</div>
-					))}
+				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6" id="voteCards">
+					{votesState.votes?.map((v) => {
+						const participant = participants.find(p => p.id === v.userId);
+						const voterName = participant?.displayName || 'Unknown';
+						const isCurrentUserVote = v.userId === currentUser.uid;
+
+						return (
+							<div
+								key={v.userId}
+								className={`
+									flex flex-col items-center justify-center p-4 rounded-lg gap-2
+									${(votesState.mostVotes === v.vote && issueState.showVotes)
+										? 'bg-success text-white border-2 border-success'
+										: 'bg-primary text-white border-2 border-primary'}
+									${isCurrentUserVote ? 'ring-2 ring-offset-2 ring-primary' : ''}
+								`}
+							>
+								<div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-sm font-semibold">
+									{voterName.charAt(0).toUpperCase()}
+								</div>
+								<div className="text-xs font-medium truncate w-full text-center">
+									{voterName}
+									{isCurrentUserVote && ' (You)'}
+								</div>
+								<div className="text-3xl font-bold">
+									{(issueState.showVotes) ? v.vote : '?'}
+								</div>
+							</div>
+						);
+					})}
 				</div>
 			</div>
 			{!issueState.isLocked && (

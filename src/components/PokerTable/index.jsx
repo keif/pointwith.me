@@ -121,10 +121,10 @@ const PokerTable = () => {
 
 		// Optimistically update UI
 		const filteredIssues = state.issues.filter(({id}) => id !== issueId);
-		setState({
-			...state,
+		setState(prevState => ({
+			...prevState,
 			issues: filteredIssues,
-		});
+		}));
 
 		// Delete from Firebase
 		toast.promise(
@@ -187,14 +187,14 @@ const PokerTable = () => {
 				});
 
 				const nextIssue = getNextIssue(table.currentIssue, newIssuesList);
-				setState({
-					...state,
+				setState(prevState => ({
+					...prevState,
 					pokerTable: table,
 					issues: newIssuesList,
 					issueModal: table.issueModal || false,
 					currentIssue: table.currentIssue || false,
 					nextIssue,
-				});
+				}));
 			}
 		});
 	};
@@ -222,24 +222,34 @@ const PokerTable = () => {
 							</h2>
 						</div>
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-							{state.participants.map((participant) => (
-								<div
-									key={participant.id}
-									className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg"
-								>
-									<div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm">
-										{participant.displayName.charAt(0).toUpperCase()}
+							{state.participants.map((participant) => {
+								const isCurrentUser = participant.id === currentUser.uid;
+								return (
+									<div
+										key={participant.id}
+										className={`flex items-center gap-2 p-3 rounded-lg ${
+											isCurrentUser
+												? 'bg-primary bg-opacity-10 border-2 border-primary'
+												: 'bg-gray-50'
+										}`}
+									>
+										<div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
+											isCurrentUser ? 'bg-primary text-white ring-2 ring-primary ring-offset-2' : 'bg-primary text-white'
+										}`}>
+											{participant.displayName.charAt(0).toUpperCase()}
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className="text-sm font-medium text-gray-900 truncate">
+												{participant.displayName}
+												{isCurrentUser && <span className="text-primary font-bold ml-1">(You)</span>}
+											</p>
+											{participant.isHost && (
+												<p className="text-xs text-primary font-medium">HOST</p>
+											)}
+										</div>
 									</div>
-									<div className="flex-1 min-w-0">
-										<p className="text-sm font-medium text-gray-900 truncate">
-											{participant.displayName}
-										</p>
-										{participant.isHost && (
-											<p className="text-xs text-primary font-medium">HOST</p>
-										)}
-									</div>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					</div>
 				)}
@@ -305,7 +315,7 @@ const PokerTable = () => {
 				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-16 overflow-y-auto">
 					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-16">
 						<div className="p-6">
-							<Issue issue={state.currentIssue} />
+							<Issue issue={state.currentIssue} participants={state.participants} />
 						</div>
 						{(userId === currentUser.uid) && (
 							<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />
