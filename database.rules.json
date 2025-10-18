@@ -2,8 +2,8 @@
  "rules": {
    "pokerTables": {
       "$uid": {
-        ".read": true,
-        ".write": "$uid === auth.uid"
+        ".read": "auth != null",
+        ".write": "auth != null"
       }
     },
     "votes": {
