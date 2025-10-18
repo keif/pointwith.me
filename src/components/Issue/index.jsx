@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Card, Container, Header, Icon, Loader, Segment,} from 'semantic-ui-react';
+import toast from 'react-hot-toast';
 import {auth, db} from '../../firebase';
 import './issue.css';
 import {useParams} from 'react-router-dom';
@@ -108,20 +109,41 @@ const Issue = ({issue}) => {
 			};
 			// setState(newState);
 			setVotesState(newState);
-		} else {
-			console.warn('No votes found');
 		}
+		// Note: No votes is expected for new issues - no need to log
 	});
 
 	const handleSelectVote = (userVote) => {
-		if (userVote === votesState.userVote) {
+		const previousVote = votesState.userVote;
+
+		// If clicking same vote, clear it
+		if (userVote === previousVote) {
 			userVote = null;
 		}
+
+		// Optimistically update UI
 		setVotesState({
 			...votesState,
 			userVote
 		});
-		update(child(votesRef, currentUser.uid), {vote: userVote});
+
+		// Update Firebase
+		update(child(votesRef, currentUser.uid), {vote: userVote})
+			.then(() => {
+				if (userVote === null) {
+					toast.success('Vote cleared');
+				} else {
+					toast.success(`Voted: ${userVote}`);
+				}
+			})
+			.catch((error) => {
+				// Revert on error
+				setVotesState({
+					...votesState,
+					userVote: previousVote
+				});
+				toast.error('Failed to submit vote: ' + error.message);
+			});
 	};
 
 	//suggestion() {

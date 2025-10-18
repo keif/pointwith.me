@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import toast from 'react-hot-toast';
 import { Button, Form, Input, Message } from 'semantic-ui-react';
 import { signInAnonymouslyWithName } from '../../firebase/auth';
 
@@ -27,18 +28,25 @@ const AnonymousLogin = ({ onSuccess }) => {
     setLoading(true);
     setError(null);
 
-    try {
-      const result = await signInAnonymouslyWithName(name.trim());
-      if (onSuccess) {
-        onSuccess(result.user);
+    toast.promise(
+      signInAnonymouslyWithName(name.trim()),
+      {
+        loading: 'Joining as guest...',
+        success: `Welcome, ${name.trim()}!`,
+        error: 'Failed to join as guest',
       }
-      // Don't navigate here - let the Login component's auth listener handle navigation
-      // It will check for entryPoint and redirect appropriately
-    } catch (err) {
-      console.error('Anonymous login error:', err);
-      setError('Failed to join. Please try again.');
-      setLoading(false);
-    }
+    )
+      .then((result) => {
+        if (onSuccess) {
+          onSuccess(result.user);
+        }
+        // Don't navigate here - let the Login component's auth listener handle navigation
+      })
+      .catch((err) => {
+        console.error('Anonymous login error:', err);
+        setError(err.message || 'Failed to join. Please try again.');
+        setLoading(false);
+      });
   };
 
   return (

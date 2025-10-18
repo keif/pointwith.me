@@ -1,6 +1,7 @@
 import {Button, Container, Divider, Header, Icon, Input, Label} from 'semantic-ui-react';
 import React, {useState} from 'react';
 import {update} from 'firebase/database';
+import toast from 'react-hot-toast';
 import {db} from '../../firebase';
 import {useParams} from 'react-router-dom';
 import {calculateAverage, calculateMode, calculateSuggestedScore} from '../../utils/voteCalculations';
@@ -16,34 +17,49 @@ const Controls = ({isLocked, issue, showVotes, votes, finalScore}) => {
 	);
 
 	const handleShow = () => {
-		update(issueRef, {'showVotes': !showVotes});
+		const newState = !showVotes;
+		update(issueRef, {'showVotes': newState})
+			.then(() => {
+				toast.success(newState ? 'Votes revealed!' : 'Votes hidden');
+			})
+			.catch((error) => {
+				toast.error('Failed to toggle votes: ' + error.message);
+			});
 	};
 
 	const handleLock = () => {
-		update(issueRef, {'isLocked': !isLocked});
+		const newState = !isLocked;
+		update(issueRef, {'isLocked': newState})
+			.then(() => {
+				toast.success(newState ? 'Voting locked' : 'Voting unlocked');
+			})
+			.catch((error) => {
+				toast.error('Failed to toggle lock: ' + error.message);
+			});
 	};
 
 	const handleSetFinalScore = (score) => {
-		console.log('Setting final score:', score);
-		update(issueRef, {'finalScore': score})
-			.then(() => {
-				console.log('Final score set successfully');
-				setCustomScore('');
-			})
-			.catch((error) => {
-				console.error('Error setting final score:', error);
-				alert('Error setting final score: ' + error.message);
-			});
+		toast.promise(
+			update(issueRef, {'finalScore': score}),
+			{
+				loading: 'Setting final score...',
+				success: `Final score set to ${score}!`,
+				error: 'Failed to set final score',
+			}
+		).then(() => {
+			setCustomScore('');
+		});
 	};
 
 	const handleClearFinalScore = () => {
-		console.log('Clearing final score');
-		update(issueRef, {'finalScore': null})
-			.then(() => console.log('Final score cleared'))
-			.catch((error) => {
-				console.error('Error clearing final score:', error);
-				alert('Error clearing final score: ' + error.message);
-			});
+		toast.promise(
+			update(issueRef, {'finalScore': null}),
+			{
+				loading: 'Clearing final score...',
+				success: 'Final score cleared',
+				error: 'Failed to clear final score',
+			}
+		);
 	};
 
 	const average = calculateAverage(votes);

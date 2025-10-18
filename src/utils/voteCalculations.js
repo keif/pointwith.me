@@ -1,4 +1,4 @@
-import { nearestPrime } from './primes';
+import { roundUpToPrime } from './primes';
 
 /**
  * Calculate the average of all votes
@@ -17,14 +17,14 @@ export const calculateAverage = (votes) => {
 };
 
 /**
- * Calculate suggested final score (average rounded to nearest prime)
+ * Calculate suggested final score (average rounded UP to nearest prime)
+ * Returns 0 if average < 0.3, otherwise rounds up to next prime number
  * @param {Array} votes - Array of vote objects
  * @returns {number} - Suggested final score
  */
 export const calculateSuggestedScore = (votes) => {
     const average = calculateAverage(votes);
-    if (average === 0) return 0;
-    return nearestPrime(average);
+    return roundUpToPrime(average);
 };
 
 /**

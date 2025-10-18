@@ -2,6 +2,7 @@
 import React, {useEffect} from 'react';
 import moment from 'moment';
 import {Button, Container, Header, Icon, List, Modal, Segment,} from 'semantic-ui-react';
+import toast from 'react-hot-toast';
 
 // Ours
 import {auth, db} from '../../firebase';
@@ -48,21 +49,42 @@ const PokerTable = () => {
 			score: 0,
 			votes: {},
 		};
-		update(child(ptIssuesRef, uid), data)
-			.then(() => loadPokerTable());
+		toast.promise(
+			update(child(ptIssuesRef, uid), data),
+			{
+				loading: 'Creating issue...',
+				success: `Created: ${newIssueName}`,
+				error: 'Failed to create issue',
+			}
+		).then(() => loadPokerTable());
 	};
 
 	const removeIssue = (issueId) => (e) => {
 		e.preventDefault();
 
-		issuesClient.remove(issueId); // Optimistically deletes poker table. i.e. doesn't block the ui from updating
+		const issue = state.issues.find(i => i.id === issueId);
+		const issueName = issue?.title || 'Issue';
 
+		// Optimistically update UI
 		const filteredIssues = state.issues.filter(({id}) => id !== issueId);
-
 		setState({
 			...state,
 			issues: filteredIssues,
 		});
+
+		// Delete from Firebase
+		toast.promise(
+			issuesClient.remove(issueId),
+			{
+				loading: 'Deleting issue...',
+				success: `Deleted: ${issueName}`,
+				error: (err) => {
+					// Revert on error
+					loadPokerTable();
+					return 'Failed to delete issue';
+				},
+			}
+		);
 	};
 
 	const handleViewIssue = async (currentIssue) => {
@@ -87,7 +109,10 @@ const PokerTable = () => {
 	};
 
 	const handleCloseIssue = async () => {
-		await update(pokerTableRef, {currentIssue: false});
+		await update(pokerTableRef, {currentIssue: false})
+			.catch((error) => {
+				toast.error('Failed to close issue: ' + error.message);
+			});
 	};
 
 	const loadPokerTable = () => {
