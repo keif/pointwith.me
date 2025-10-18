@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Card, Container, Header, Icon, Loader, Segment,} from 'semantic-ui-react';
+import {Trophy, Loader2} from 'lucide-react';
 import toast from 'react-hot-toast';
 import {auth, db} from '../../firebase';
 import './issue.css';
@@ -161,47 +161,56 @@ const Issue = ({issue}) => {
 	//}
 
 	if (!issueState.isLoaded) {
-		return (<Loader size="large">Loading</Loader>);
+		return (
+			<div className="flex justify-center items-center py-12">
+				<Loader2 className="animate-spin" size={48} />
+			</div>
+		);
 	}
 
 	return (
-		<Container textAlign="center" id="issue">
-			<Header as="h1">{issueState.title}</Header>
+		<div className="text-center" id="issue">
+			<h1 className="text-4xl font-bold mb-4">{issueState.title}</h1>
 			{issueState.finalScore !== null && issueState.finalScore !== undefined && (
-				<Header as="h2" color="teal">
-					<Icon name="trophy"/>
-					Final Score: {issueState.finalScore}
-				</Header>
+				<div className="flex items-center justify-center gap-2 mb-6 text-2xl text-success">
+					<Trophy size={28} />
+					<span className="font-semibold">Final Score: {issueState.finalScore}</span>
+				</div>
 			)}
-			<Segment stacked>
-				{(isTableOwner) ?
+			<div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+				{(isTableOwner) && (
 					<Controls
 						isLocked={issueState.isLocked}
 						issue={issue}
 						showVotes={issueState.showVotes}
 						votes={votesState.votes}
 						finalScore={issueState.finalScore}
-					/> : null}
-				<Card.Group
-					itemsPerRow={4}
-					id="voteCards"
-				>
+					/>
+				)}
+				<div className="grid grid-cols-4 gap-4 mt-6" id="voteCards">
 					{votesState.votes?.map((v) => (
-						<Card color={(votesState.mostVotes === v.vote && issueState.showVotes) ? 'green' : 'blue'}
-							  className={(votesState.mostVotes === v.vote && issueState.showVotes) ? 'mode' : ''}
-							  key={v.userId}>
+						<div
+							key={v.userId}
+							className={`
+								aspect-square flex items-center justify-center text-2xl font-bold rounded-lg
+								${(votesState.mostVotes === v.vote && issueState.showVotes)
+									? 'bg-success text-white border-2 border-success'
+									: 'bg-primary text-white border-2 border-primary'}
+							`}
+						>
 							{(issueState.showVotes) ? v.vote : '?'}
-						</Card>
+						</div>
 					))}
-				</Card.Group>
-			</Segment>
-			{!issueState.isLocked ?
+				</div>
+			</div>
+			{!issueState.isLocked && (
 				<VotingBlock
 					isLocked={issueState.isLocked}
 					onClick={handleSelectVote}
 					userVote={votesState.userVote}
-				/> : null}
-		</Container>
+				/>
+			)}
+		</div>
 	);
 };
 

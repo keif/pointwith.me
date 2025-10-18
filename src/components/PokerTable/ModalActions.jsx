@@ -1,23 +1,22 @@
-import {Button, Icon, Modal} from 'semantic-ui-react';
+import {X, ChevronRight} from 'lucide-react';
 import React from 'react';
 
 const ModalActions = ({nextIssue, onClose, onNext}) => {
 	return (
-		<Modal.Actions id="modalControl">
-			<Button.Group>
-				<Button color="red" onClick={onClose}>
-					<Icon name="close"/> Close
-				</Button>
-				<Button.Or/>
-				<Button
-					color="green"
-					onClick={() => onNext(nextIssue)}
-					disabled={!nextIssue}
-				>
-					<Icon name="chevron right"/> Next
-				</Button>
-			</Button.Group>
-		</Modal.Actions>
+		<div id="modalControl" className="border-t bg-gray-50 px-6 py-4 flex items-center justify-between gap-4">
+			<button onClick={onClose} className="btn btn-danger flex items-center gap-2">
+				<X size={16} />
+				Close
+			</button>
+			<button
+				onClick={() => onNext(nextIssue)}
+				disabled={!nextIssue}
+				className="btn btn-success flex items-center gap-2"
+			>
+				Next
+				<ChevronRight size={16} />
+			</button>
+		</div>
 	);
 }
 

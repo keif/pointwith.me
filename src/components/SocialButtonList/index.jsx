@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
-import {Button, Icon} from 'semantic-ui-react';
 import {
     azureOAuth,
     facebookOAuth,
@@ -79,14 +78,15 @@ const SocialButtonList = ({currentUser, currentProviders}) => {
         const visible = buttonList[provider].visible;
 
         if (visible) {
+            const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
             return (
-                <Button
-                    primary
+                <button
                     key={provider}
                     onClick={e => authenticate(e, provider)}
+                    className="btn btn-primary w-full"
                 >
-                    <Icon name={provider}></Icon> {provider}
-                </Button>
+                    {providerName}
+                </button>
             );
         } else {
             return null;
@@ -94,7 +94,7 @@ const SocialButtonList = ({currentUser, currentProviders}) => {
     };
 
     return (
-        <div id="loginButtons">
+        <div id="loginButtons" className="space-y-2">
             {Object.keys(buttonList).map(renderButtonList)}
         </div>
     );

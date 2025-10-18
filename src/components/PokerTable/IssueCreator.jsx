@@ -1,4 +1,4 @@
-import {Header, Icon} from 'semantic-ui-react';
+import {Home} from 'lucide-react';
 import IssueNameForm from './IssueNameForm';
 import React from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
@@ -14,30 +14,28 @@ const IssueCreator = ({onClick, tableName}) => {
     if (userId !== currentUser.uid) {
         return (
             <div>
-                <Header as="h1">{tableName}</Header>
-                <Header
-                    sub
-                    as="a"
+                <h1 className="text-3xl font-bold mb-4">{tableName}</h1>
+                <button
                     onClick={() => navigate('/dashboard')}
+                    className="text-primary hover:underline flex items-center gap-2 text-sm"
                 >
-                    <Icon name="home"/>
+                    <Home size={16} />
                     Return to Lobby
-                </Header>
+                </button>
             </div>
         );
     }
     return (
         <>
-            <Header as="h1">{tableName}</Header>
-            <Header
-                sub
-                as="a"
+            <h1 className="text-3xl font-bold mb-4">{tableName}</h1>
+            <button
                 onClick={() => navigate('/dashboard')}
+                className="text-primary hover:underline flex items-center gap-2 text-sm mb-4"
             >
-                <Icon name="home"/>
+                <Home size={16} />
                 Return to Lobby
-            </Header>
-            <p>
+            </button>
+            <p className="text-gray-600 mb-4">
                 Copy this table's URL to share with your team for a pointing session
             </p>
             <IssueNameForm handleIssueSubmit={onClick}/>

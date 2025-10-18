@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {format} from 'date-fns';
-import {Container, Header, Icon, List, Segment,} from 'semantic-ui-react';
+import {X} from 'lucide-react';
 import {onValue, set} from 'firebase/database';
 import shortid from 'shortid';
 
@@ -27,7 +27,7 @@ const Dashboard = () => {
 		const uid = shortid.generate();
 		const pRef = db.pokerTable(currentUser.uid, uid);
 		const data = {
-			created: new Date().toString(),
+			created: new Date().toISOString(),
 			tableName: newPokerTableName,
 		};
 		set(pRef, data)
@@ -73,41 +73,52 @@ const Dashboard = () => {
 
 	return (
 		<Layout data-testid={`Dashboard`}>
-			<Container>
-				<Segment raised>
+			<div className="space-y-6">
+				{/* Create Table Form */}
+				<div className="card">
 					<PokerTableNameForm handlePokerTableSubmit={createPokerTable}/>
-				</Segment>
-				<Segment stacked>
-					<Header as="h1">Your Poker Tables</Header>
-					<List divided relaxed>
+				</div>
+
+				{/* Tables List */}
+				<div className="card">
+					<h1 className="text-3xl font-bold mb-6">Your Poker Tables</h1>
+					<div className="divide-y divide-gray-200">
 						{pokerTables.length > 0 ? pokerTables.map((s) => (
-							<List.Item key={s.id} className="pwm-list-item">
+							<div key={s.id} className="flex items-center justify-between py-4 hover:bg-gray-50 transition-colors">
 								<Link
 									to={`/table/${currentUser.uid}/${s.id}`}
-									className="pwm-list-item-content"
+									className="flex-1 no-underline text-inherit hover:text-primary transition-colors"
 								>
-									<List.Content>
-										<List.Header>{s.tableName}</List.Header>
-										<List.Description>Table ID: {s.id}</List.Description>
-										<List.Description>
-											Created: {format(new Date(s.created), 'MM/dd/yyyy hh:mm a')}
-										</List.Description>
-									</List.Content>
+									<h3 className="text-lg font-semibold text-gray-900">{s.tableName}</h3>
+									<p className="text-sm text-gray-500">Table ID: {s.id}</p>
+									{s.created && (
+										<p className="text-sm text-gray-500">
+											Created: {(() => {
+												try {
+													const date = new Date(s.created);
+													return isNaN(date.getTime()) ? 'Unknown' : format(date, 'MM/dd/yyyy hh:mm a');
+												} catch (e) {
+													return 'Unknown';
+												}
+											})()}
+										</p>
+									)}
 								</Link>
-								<div className="actions">
-									<button
-										className="pwm-delete"
-										data-testid="delete-button"
-										onClick={removePokerTable(s.id)}
-									>
-										<Icon name="times" color="red"/>
-									</button>
-								</div>
-							</List.Item>
-						)) : `No poker tables found. Create one above!`}
-					</List>
-				</Segment>
-			</Container>
+								<button
+									data-testid="delete-button"
+									onClick={removePokerTable(s.id)}
+									className="ml-4 p-2 text-danger hover:bg-red-50 rounded transition-colors"
+									aria-label="Delete table"
+								>
+									<X size={20} />
+								</button>
+							</div>
+						)) : (
+							<p className="text-gray-500 text-center py-8">No poker tables found. Create one above!</p>
+						)}
+					</div>
+				</div>
+			</div>
 		</Layout>
 	);
 };

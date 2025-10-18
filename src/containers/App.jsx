@@ -1,19 +1,52 @@
-import React from 'react';
+import React, {Suspense, lazy} from 'react';
 import {BrowserRouter, createBrowserRouter, Route, RouterProvider, Routes} from 'react-router-dom';
 import {Toaster} from 'react-hot-toast';
 
 import Login from '../components/Login';
-import Dashboard from '../components/Dashboard';
-import PokerTable from '../components/PokerTable';
-import About from '../components/About';
 import withAuthentication from '../containers/withAuthentication';
 import '../style.css';
 
+// Lazy load route components
+const Dashboard = lazy(() => import('../components/Dashboard'));
+const PokerTable = lazy(() => import('../components/PokerTable'));
+const About = lazy(() => import('../components/About'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+    <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+        </div>
+    </div>
+);
+
 const router = createBrowserRouter([
     {path: "/", Component: Login},
-    {path: "/about", Component: About},
-    {path: "/dashboard", Component: Dashboard},
-    {path: "/table/:userId/:tableId", Component: PokerTable},
+    {
+        path: "/about",
+        element: (
+            <Suspense fallback={<LoadingFallback />}>
+                <About />
+            </Suspense>
+        )
+    },
+    {
+        path: "/dashboard",
+        element: (
+            <Suspense fallback={<LoadingFallback />}>
+                <Dashboard />
+            </Suspense>
+        )
+    },
+    {
+        path: "/table/:userId/:tableId",
+        element: (
+            <Suspense fallback={<LoadingFallback />}>
+                <PokerTable />
+            </Suspense>
+        )
+    },
 ])
 
 const App = () => {

@@ -1,7 +1,7 @@
 // Theirs
 import React, {useEffect} from 'react';
 import {format} from 'date-fns';
-import {Button, Container, Header, Icon, List, Modal, Segment,} from 'semantic-ui-react';
+import {Lock, Unlock, Trophy, X} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Ours
@@ -45,7 +45,7 @@ const PokerTable = () => {
 		const uid = shortid.generate();
 		const data = {
 			title: newIssueName,
-			created: new Date(),
+			created: new Date().toISOString(),
 			score: 0,
 			votes: {},
 		};
@@ -147,68 +147,84 @@ const PokerTable = () => {
 
 	return (
 		<Layout>
-			<Container>
-				<Segment raised>
+			<div className="space-y-6">
+				{/* Issue Creator */}
+				<div className="card">
 					<IssueCreator
 						onClick={handleCreateIssue}
 						tableName={state.pokerTable.tableName}
 					/>
-				</Segment>
-				<Segment stacked>
-					<Header as="h1">Table Issues</Header>
-					<List divided relaxed>
+				</div>
+
+				{/* Issues List */}
+				<div className="card">
+					<h1 className="text-3xl font-bold mb-6">Table Issues</h1>
+					<div className="divide-y divide-gray-200">
 						{state.issues.length > 0 ? state.issues.map((s) => (
-							<List.Item className="issueLink pwm-list-item" key={s.id}>
-								<List.Content
-									className="pwm-list-item-content"
+							<div key={s.id} className="flex items-center justify-between py-4 hover:bg-gray-50 transition-colors">
+								<div
 									onClick={() => handleViewIssue(s.id)}
 									role="button"
+									className="flex-1 cursor-pointer"
 								>
-									<List.Header>
-										<Icon name={s.isLocked ? 'lock' : 'unlock'}/>
-										{s.title}
+									<div className="flex items-center gap-2 mb-1">
+										{s.isLocked ? <Lock size={16} className="text-gray-500" /> : <Unlock size={16} className="text-gray-500" />}
+										<h3 className="text-lg font-semibold text-gray-900">{s.title}</h3>
 										{s.finalScore !== null && s.finalScore !== undefined && (
 											<>
-												{' '}
-												<Icon name="trophy" color="yellow" size="small"/>
-												<span style={{color: '#00b5ad', fontWeight: 'bold'}}>
+												<Trophy size={16} className="text-warning" />
+												<span className="text-success font-bold">
 													{s.finalScore}
 												</span>
 											</>
 										)}
-									</List.Header>
-									<List.Description>
-										Created: {format(new Date(s.created), 'MM/dd/yyyy hh:mm a')}
-									</List.Description>
-								</List.Content>
+									</div>
+									{s.created && (
+										<p className="text-sm text-gray-500">
+											Created: {(() => {
+												try {
+													const date = new Date(s.created);
+													return isNaN(date.getTime()) ? 'Unknown' : format(date, 'MM/dd/yyyy hh:mm a');
+												} catch (e) {
+													return 'Unknown';
+												}
+											})()}
+										</p>
+									)}
+								</div>
 
 								{/* Only show the delete action if the authenticated user is the owner. */}
 								{userId === currentUser.uid && (
-									<div className="actions">
-										<button
-											className="pwm-delete"
-											data-testid="delete-issue-button"
-											onClick={removeIssue(s.id)}
-										>
-											<Icon name="times" color="red"/>
-										</button>
-									</div>
+									<button
+										data-testid="delete-issue-button"
+										onClick={removeIssue(s.id)}
+										className="ml-4 p-2 text-danger hover:bg-red-50 rounded transition-colors"
+										aria-label="Delete issue"
+									>
+										<X size={20} />
+									</button>
 								)}
-							</List.Item>
-						)) : `No Issues Returned`}
-					</List>
-				</Segment>
-			</Container>
-			<Modal open={!!state.currentIssue} centered={false}>
-				<Modal.Content>
-					<Issue
-						issue={state.currentIssue}
-					/>
-				</Modal.Content>
-				{(userId === currentUser.uid) ?
-					<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />
-				: null}
-			</Modal>
+							</div>
+						)) : (
+							<p className="text-gray-500 text-center py-8">No Issues Returned</p>
+						)}
+					</div>
+				</div>
+			</div>
+
+			{/* Modal */}
+			{!!state.currentIssue && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-16 overflow-y-auto">
+					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-16">
+						<div className="p-6">
+							<Issue issue={state.currentIssue} />
+						</div>
+						{(userId === currentUser.uid) && (
+							<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />
+						)}
+					</div>
+				</div>
+			)}
 		</Layout>
 	);
 };

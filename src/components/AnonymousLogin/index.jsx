@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
-import { Button, Form, Input, Message } from 'semantic-ui-react';
+import { Loader2 } from 'lucide-react';
 import { signInAnonymouslyWithName } from '../../firebase/auth';
 
 const propTypes = {
@@ -50,26 +50,30 @@ const AnonymousLogin = ({ onSuccess }) => {
   };
 
   return (
-    <Form onSubmit={handleSubmit} error={!!error}>
-      <Form.Field>
-        <Input
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex gap-2">
+        <input
+          type="text"
           placeholder="Enter your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          action={
-            <Button
-              primary
-              loading={loading}
-              disabled={!name.trim() || loading}
-              type="submit"
-            >
-              Join as Guest
-            </Button>
-          }
+          className="input flex-1"
         />
-      </Form.Field>
-      {error && <Message error content={error} />}
-    </Form>
+        <button
+          type="submit"
+          disabled={!name.trim() || loading}
+          className="btn btn-primary flex items-center gap-2"
+        >
+          {loading && <Loader2 className="animate-spin" size={16} />}
+          Join as Guest
+        </button>
+      </div>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+    </form>
   );
 };
 

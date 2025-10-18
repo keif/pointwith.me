@@ -1,7 +1,7 @@
 import React from 'react';
 import App from './containers/App';
 import * as serviceWorker from './serviceWorker';
-import 'semantic-ui-css/semantic.min.css';
+import './tailwind.css';
 import './index.css';
 import {createRoot} from 'react-dom/client';
 

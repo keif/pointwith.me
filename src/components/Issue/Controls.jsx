@@ -1,4 +1,4 @@
-import {Button, Container, Divider, Header, Icon, Input, Label} from 'semantic-ui-react';
+import {Eye, EyeOff, Lock, Unlock, CheckCircle, Check, Save} from 'lucide-react';
 import React, {useState} from 'react';
 import {update} from 'firebase/database';
 import toast from 'react-hot-toast';
@@ -67,106 +67,101 @@ const Controls = ({isLocked, issue, showVotes, votes, finalScore}) => {
 	const mode = calculateMode(votes);
 
 	return (
-		<Container id="voteControls" textAlign="center">
-			<Button
-				positive
-				toggle
-				active={showVotes}
-				onClick={handleShow}
-			>
-				<Icon
-					name={(showVotes) ? 'eye slash' : 'eye'}
-					size="large"/>
-				{`${showVotes ? 'Hide' : 'Show'}`} Votes
-			</Button>
-			<Button
-				negative
-				toggle
-				active={isLocked}
-				onClick={handleLock}
-			>
-				<Icon
-					name={(isLocked) ? 'unlock' : 'lock'}
-					size="large"/>
-				{`${isLocked ? 'Unlock' : 'Lock'}`} Voting
-			</Button>
+		<div id="voteControls" className="text-center space-y-4">
+			{/* Toggle Buttons */}
+			<div className="flex gap-2 justify-center">
+				<button
+					onClick={handleShow}
+					className={`btn flex items-center gap-2 ${showVotes ? 'btn-success' : 'btn-secondary'}`}
+				>
+					{showVotes ? <EyeOff size={18} /> : <Eye size={18} />}
+					{`${showVotes ? 'Hide' : 'Show'}`} Votes
+				</button>
+				<button
+					onClick={handleLock}
+					className={`btn flex items-center gap-2 ${isLocked ? 'btn-danger' : 'btn-secondary'}`}
+				>
+					{isLocked ? <Unlock size={18} /> : <Lock size={18} />}
+					{`${isLocked ? 'Unlock' : 'Lock'}`} Voting
+				</button>
+			</div>
 
 			{votes && votes.length > 0 && showVotes && (
 				<>
-					<Divider horizontal/>
-					<Container textAlign="center" style={{marginBottom: '1em'}}>
-						<Label.Group size="large">
-							<Label>
-								Average
-								<Label.Detail>{average.toFixed(2)}</Label.Detail>
-							</Label>
-							<Label color="blue">
-								Suggested (Prime)
-								<Label.Detail>{suggestedScore}</Label.Detail>
-							</Label>
-							{mode !== null && (
-								<Label color="green">
-									Mode
-									<Label.Detail>{mode}</Label.Detail>
-								</Label>
-							)}
-						</Label.Group>
-					</Container>
+					{/* Divider */}
+					<div className="border-t border-gray-300 my-4"></div>
 
-					<Container textAlign="center">
+					{/* Statistics */}
+					<div className="flex gap-3 justify-center mb-4">
+						<div className="bg-gray-100 px-4 py-2 rounded">
+							<div className="text-xs text-gray-600">Average</div>
+							<div className="text-lg font-bold">{average.toFixed(2)}</div>
+						</div>
+						<div className="bg-blue-100 px-4 py-2 rounded">
+							<div className="text-xs text-blue-600">Suggested (Prime)</div>
+							<div className="text-lg font-bold text-blue-700">{suggestedScore}</div>
+						</div>
+						{mode !== null && (
+							<div className="bg-green-100 px-4 py-2 rounded">
+								<div className="text-xs text-green-600">Mode</div>
+								<div className="text-lg font-bold text-green-700">{mode}</div>
+							</div>
+						)}
+					</div>
+
+					{/* Final Score Section */}
+					<div className="text-center">
 						{finalScore !== null && finalScore !== undefined ? (
 							<>
-								<Header as="h3" color="teal">
-									<Icon name="check circle"/>
-									Final Score: {finalScore}
-								</Header>
-								<Button
-									size="small"
-									color="red"
-									basic
+								<div className="flex items-center justify-center gap-2 text-xl text-success mb-3">
+									<CheckCircle size={24} />
+									<span className="font-semibold">Final Score: {finalScore}</span>
+								</div>
+								<button
 									onClick={handleClearFinalScore}
+									className="btn btn-danger text-sm"
 								>
 									Clear Final Score
-								</Button>
+								</button>
 							</>
 						) : (
 							<>
-								<Header as="h4">Set Final Score</Header>
-								<div style={{marginBottom: '1em'}}>
-									<Button
-										color="teal"
-										size="large"
+								<h4 className="text-lg font-semibold mb-3">Set Final Score</h4>
+								<div className="mb-3">
+									<button
 										onClick={() => handleSetFinalScore(suggestedScore)}
+										className="btn btn-success flex items-center gap-2 mx-auto"
 									>
-										<Icon name="check"/>
+										<Check size={18} />
 										Use Suggested ({suggestedScore})
-									</Button>
+									</button>
 								</div>
-								<div>
-									<Input
+								<div className="flex gap-2 justify-center">
+									<input
 										type="number"
 										placeholder="Enter custom score..."
 										value={customScore}
 										onChange={(e) => setCustomScore(e.target.value)}
-										style={{marginRight: '0.5em'}}
+										className="input max-w-xs"
 									/>
-									<Button
-										color="blue"
+									<button
 										disabled={!customScore || customScore === ''}
 										onClick={() => handleSetFinalScore(parseFloat(customScore))}
+										className="btn btn-primary flex items-center gap-2"
 									>
-										<Icon name="save"/>
+										<Save size={18} />
 										Set Custom Score
-									</Button>
+									</button>
 								</div>
 							</>
 						)}
-					</Container>
+					</div>
 				</>
 			)}
 
-			<Divider horizontal/>
-		</Container>
+			{/* Divider */}
+			<div className="border-t border-gray-300 my-4"></div>
+		</div>
 	);
 };
 
