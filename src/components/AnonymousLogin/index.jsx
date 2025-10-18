@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
 import { Button, Form, Input, Message } from 'semantic-ui-react';
 import { signInAnonymouslyWithName } from '../../firebase/auth';
 
@@ -16,7 +15,6 @@ const AnonymousLogin = ({ onSuccess }) => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,9 +31,9 @@ const AnonymousLogin = ({ onSuccess }) => {
       const result = await signInAnonymouslyWithName(name.trim());
       if (onSuccess) {
         onSuccess(result.user);
-      } else {
-        navigate('/dashboard');
       }
+      // Don't navigate here - let the Login component's auth listener handle navigation
+      // It will check for entryPoint and redirect appropriately
     } catch (err) {
       console.error('Anonymous login error:', err);
       setError('Failed to join. Please try again.');
