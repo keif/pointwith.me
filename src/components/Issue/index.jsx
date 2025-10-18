@@ -8,10 +8,11 @@ import {child, onValue, update} from 'firebase/database';
 import VotingBlock from './VotingBlock';
 import Controls from './Controls';
 
-const Issue = ({issue, participants = []}) => {
+const Issue = ({issue, participants = [], userRole = 'voter'}) => {
 	const {userId, tableId} = useParams();
 	const currentUser = auth.auth.currentUser;
 	const isTableOwner = userId === currentUser.uid;
+	const isSpectator = userRole === 'spectator';
 	const [issueState, setIssueState] = useState({
 		isLoaded: false,
 		isLocked: false,
@@ -168,8 +169,9 @@ const Issue = ({issue, participants = []}) => {
 		);
 	}
 
-	// Get participants with vote status
-	const participantsWithVotes = participants.map(participant => {
+	// Get participants with vote status (exclude spectators)
+	const voters = participants.filter(p => p.role !== 'spectator');
+	const participantsWithVotes = voters.map(participant => {
 		const hasVoted = votesState.votes.some(v => v.userId === participant.id);
 		return {
 			...participant,
@@ -267,12 +269,19 @@ const Issue = ({issue, participants = []}) => {
 					})}
 				</div>
 			</div>
-			{!issueState.isLocked && (
+			{!issueState.isLocked && !isSpectator && (
 				<VotingBlock
 					isLocked={issueState.isLocked}
 					onClick={handleSelectVote}
 					userVote={votesState.userVote}
 				/>
+			)}
+			{isSpectator && !issueState.isLocked && (
+				<div className="text-center py-6">
+					<p className="text-gray-500 text-sm">
+						You are watching as a spectator. Switch to voter mode to participate in voting.
+					</p>
+				</div>
 			)}
 		</div>
 	);

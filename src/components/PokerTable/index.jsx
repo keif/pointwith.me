@@ -1,7 +1,7 @@
 // Theirs
 import React, {useEffect} from 'react';
 import {format} from 'date-fns';
-import {Lock, Unlock, Trophy, X, Users} from 'lucide-react';
+import {Lock, Unlock, Trophy, X, Users, Eye, UserCheck, RefreshCw} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Ours
@@ -15,6 +15,7 @@ import {child, onValue, set, update, onDisconnect, remove} from 'firebase/databa
 import shortid from 'shortid';
 import IssueCreator from './IssueCreator';
 import ModalActions from './ModalActions';
+import RoleSelectionModal from './RoleSelectionModal';
 import * as dbRefs from '../../firebase/db';
 
 
@@ -33,6 +34,8 @@ const PokerTable = () => {
 		nextIssue: false,
 		participants: [],
 	});
+	const [userRole, setUserRole] = React.useState(null);
+	const [showRoleModal, setShowRoleModal] = React.useState(true);
 	const pokerTableRef = db.pokerTable(userId, tableId);
 	const ptIssuesRef = db.pokerTableIssuesRoot(
 		userId,  // Use table owner's ID from URL, not current user
@@ -41,8 +44,14 @@ const PokerTable = () => {
 
 	useEffect(() => {
 		loadPokerTable();
-		setupParticipantTracking();
 	}, []);
+
+	useEffect(() => {
+		if (userRole) {
+			const cleanup = setupParticipantTracking();
+			return cleanup;
+		}
+	}, [userRole]);
 
 	const setupParticipantTracking = () => {
 		const participantsRef = dbRefs.pokerTableParticipants(userId, tableId);
@@ -54,6 +63,7 @@ const PokerTable = () => {
 			displayName: currentUser.displayName || 'Anonymous',
 			joinedAt: new Date().toISOString(),
 			isHost: userId === currentUser.uid,
+			role: userRole,
 		};
 
 		set(currentParticipantRef, participantData)
@@ -93,6 +103,26 @@ const PokerTable = () => {
 			remove(currentParticipantRef)
 				.catch((error) => console.error('Error removing participant:', error));
 		};
+	};
+
+	const handleSelectRole = (role) => {
+		setUserRole(role);
+		setShowRoleModal(false);
+		toast.success(`Joined as ${role === 'voter' ? 'Voter' : 'Spectator'}`);
+	};
+
+	const handleToggleRole = () => {
+		const newRole = userRole === 'voter' ? 'spectator' : 'voter';
+		const currentParticipantRef = dbRefs.pokerTableParticipant(userId, tableId, currentUser.uid);
+
+		update(currentParticipantRef, {role: newRole})
+			.then(() => {
+				setUserRole(newRole);
+				toast.success(`Switched to ${newRole === 'voter' ? 'Voter' : 'Spectator'}`);
+			})
+			.catch((error) => {
+				toast.error('Failed to switch role: ' + error.message);
+			});
 	};
 
 	const handleCreateIssue = (newIssueName) => {
@@ -215,11 +245,22 @@ const PokerTable = () => {
 				{/* Active Participants */}
 				{state.participants.length > 0 && (
 					<div className="card">
-						<div className="flex items-center gap-2 mb-4">
-							<Users size={20} className="text-primary" />
-							<h2 className="text-xl font-bold">
-								Active Participants ({state.participants.length})
-							</h2>
+						<div className="flex items-center justify-between mb-4">
+							<div className="flex items-center gap-2">
+								<Users size={20} className="text-primary" />
+								<h2 className="text-xl font-bold">
+									Active Participants ({state.participants.length})
+								</h2>
+							</div>
+							{userRole && (
+								<button
+									onClick={handleToggleRole}
+									className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+								>
+									<RefreshCw size={16} />
+									Switch to {userRole === 'voter' ? 'Spectator' : 'Voter'}
+								</button>
+							)}
 						</div>
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
 							{state.participants.map((participant) => {
@@ -243,9 +284,17 @@ const PokerTable = () => {
 												{participant.displayName}
 												{isCurrentUser && <span className="text-primary font-bold ml-1">(You)</span>}
 											</p>
-											{participant.isHost && (
-												<p className="text-xs text-primary font-medium">HOST</p>
-											)}
+											<div className="flex gap-2">
+												{participant.isHost && (
+													<p className="text-xs text-primary font-medium">HOST</p>
+												)}
+												{participant.role === 'spectator' && (
+													<p className="text-xs text-gray-600 font-medium flex items-center gap-1">
+														<Eye size={12} />
+														SPECTATOR
+													</p>
+												)}
+											</div>
 										</div>
 									</div>
 								);
@@ -315,13 +364,18 @@ const PokerTable = () => {
 				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-16 overflow-y-auto">
 					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-16">
 						<div className="p-6">
-							<Issue issue={state.currentIssue} participants={state.participants} />
+							<Issue issue={state.currentIssue} participants={state.participants} userRole={userRole} />
 						</div>
 						{(userId === currentUser.uid) && (
 							<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />
 						)}
 					</div>
 				</div>
+			)}
+
+			{/* Role Selection Modal */}
+			{showRoleModal && (
+				<RoleSelectionModal onSelectRole={handleSelectRole} />
 			)}
 		</Layout>
 	);
