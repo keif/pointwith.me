@@ -41,10 +41,12 @@ jest.mock(pokerTablesApi, () => ({
 		remove: jest.fn(),
 	})),
 }));
-jest.mock('moment', () => {
-	const moment = jest.requireActual('moment');
-	return (date) => moment(date);
-});
+jest.mock('date-fns', () => ({
+	format: jest.fn((date, formatStr) => {
+		// Simple mock that returns a formatted string
+		return new Date(date).toLocaleString();
+	}),
+}));
 jest.mock('shortid', () => ({generate: jest.fn(() => 'testTableId')}));
 
 describe('Dashboard Page', () => {

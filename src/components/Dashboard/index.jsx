@@ -1,7 +1,7 @@
 // Theirs
 import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
-import moment from 'moment';
+import {format} from 'date-fns';
 import {Container, Header, Icon, List, Segment,} from 'semantic-ui-react';
 import {onValue, set} from 'firebase/database';
 import shortid from 'shortid';
@@ -90,7 +90,7 @@ const Dashboard = () => {
 										<List.Header>{s.tableName}</List.Header>
 										<List.Description>Table ID: {s.id}</List.Description>
 										<List.Description>
-											Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
+											Created: {format(new Date(s.created), 'MM/dd/yyyy hh:mm a')}
 										</List.Description>
 									</List.Content>
 								</Link>

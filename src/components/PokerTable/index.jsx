@@ -1,6 +1,6 @@
 // Theirs
 import React, {useEffect} from 'react';
-import moment from 'moment';
+import {format} from 'date-fns';
 import {Button, Container, Header, Icon, List, Modal, Segment,} from 'semantic-ui-react';
 import toast from 'react-hot-toast';
 
@@ -178,7 +178,7 @@ const PokerTable = () => {
 										)}
 									</List.Header>
 									<List.Description>
-										Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
+										Created: {format(new Date(s.created), 'MM/dd/yyyy hh:mm a')}
 									</List.Description>
 								</List.Content>
 
