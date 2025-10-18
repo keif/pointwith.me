@@ -44,6 +44,13 @@ const PokerTable = () => {
 
 	useEffect(() => {
 		loadPokerTable();
+
+		// Check localStorage for saved role preference for this table
+		const savedRole = localStorage.getItem(`pokerRole_${tableId}`);
+		if (savedRole === 'voter' || savedRole === 'spectator') {
+			setUserRole(savedRole);
+			setShowRoleModal(false);
+		}
 	}, []);
 
 	useEffect(() => {
@@ -108,6 +115,7 @@ const PokerTable = () => {
 	const handleSelectRole = (role) => {
 		setUserRole(role);
 		setShowRoleModal(false);
+		localStorage.setItem(`pokerRole_${tableId}`, role);
 		toast.success(`Joined as ${role === 'voter' ? 'Voter' : 'Spectator'}`);
 	};
 
@@ -118,6 +126,7 @@ const PokerTable = () => {
 		update(currentParticipantRef, {role: newRole})
 			.then(() => {
 				setUserRole(newRole);
+				localStorage.setItem(`pokerRole_${tableId}`, newRole);
 				toast.success(`Switched to ${newRole === 'voter' ? 'Voter' : 'Spectator'}`);
 			})
 			.catch((error) => {
