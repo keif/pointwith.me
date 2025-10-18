@@ -3,6 +3,7 @@ import {Link, useNavigate} from 'react-router-dom';
 import store from 'store';
 import Layout from '../../containers/Layout';
 import SocialButtonList from '../SocialButtonList';
+import AnonymousLogin from '../AnonymousLogin';
 import {Divider, Grid, Header, Segment} from 'semantic-ui-react';
 import {auth} from '../../firebase';
 
@@ -37,10 +38,15 @@ const Login = () => {
 					<Segment>
 						<Header as="h1">Sign In - It&rsquo;s FREE</Header>
 						<Header sub>
-							Login with a social account, we don&rsquo;t use/store anything other
+							Quick join with just your name, or login with a social account
+						</Header>
+						<Divider horizontal>Or</Divider>
+						<AnonymousLogin />
+						<Divider horizontal>Or</Divider>
+						<Header sub>
+							Login with a social account - we don&rsquo;t use/store anything other
 							than your account ID for OAuth
 						</Header>
-						<Divider horizontal/>
 						<SocialButtonList currentUser={auth.auth.currentUser}/>
 						<Link to="/about"></Link>
 					</Segment>

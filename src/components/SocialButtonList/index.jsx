@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
 import {Button, Icon} from 'semantic-ui-react';
 import {
-    anonymousOAuth,
     azureOAuth,
     facebookOAuth,
     githubOAuth,
@@ -37,10 +36,6 @@ const buttonList = {
     microsoft: {
         visible: true,
         provider: () => azureOAuth()
-    },
-    anonymous: {
-        visible: false,
-        provider: () => anonymousOAuth()
     },
     twitter: {
         visible: false,
