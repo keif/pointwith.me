@@ -1,19 +1,91 @@
 {
- "rules": {
-   "pokerTables": {
-      "$uid": {
+  "rules": {
+    "pokerTables": {
+      "$ownerId": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "$ownerId === auth.uid",
+        "$tableId": {
+          ".validate": "newData.hasChildren(['created', 'tableName', 'ownerId', 'ownerName'])",
+          "created": {
+            ".validate": "newData.isString() && newData.val().length > 0"
+          },
+          "tableName": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          },
+          "ownerId": {
+            ".validate": "newData.val() === $ownerId"
+          },
+          "ownerName": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          },
+          "issues": {
+            "$issueId": {
+              ".validate": "newData.hasChildren(['title', 'created'])",
+              "title": {
+                ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200"
+              },
+              "created": {
+                ".validate": "newData.isString()"
+              },
+              "isLocked": {
+                ".validate": "newData.isBoolean()"
+              },
+              "showVotes": {
+                ".validate": "newData.isBoolean()"
+              },
+              "finalScore": {
+                ".validate": "newData.isNumber() || newData.val() === null"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          },
+          "participants": {
+            "$participantId": {
+              ".read": "auth != null",
+              ".write": "$participantId === auth.uid",
+              ".validate": "newData.hasChildren(['uid', 'displayName', 'joinedAt', 'isHost', 'role'])",
+              "uid": {
+                ".validate": "newData.val() === $participantId"
+              },
+              "displayName": {
+                ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+              },
+              "joinedAt": {
+                ".validate": "newData.isString()"
+              },
+              "isHost": {
+                ".validate": "newData.isBoolean()"
+              },
+              "role": {
+                ".validate": "newData.val() === 'voter' || newData.val() === 'spectator'"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
       }
     },
     "votes": {
-      ".read": true,
-      "$tid": {
-        "$uid": {
-          ".write": "$uid === auth.uid"
+      "$tableIssueId": {
+        ".read": "auth != null",
+        "$userId": {
+          ".write": "$userId === auth.uid",
+          ".validate": "newData.hasChildren(['vote'])",
+          "vote": {
+            ".validate": "(newData.isNumber() && newData.val() >= 0) || newData.val() === null"
+          },
+          "$other": {
+            ".validate": false
+          }
         }
       }
     }
   }
 }
-
