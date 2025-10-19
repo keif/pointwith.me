@@ -9,11 +9,7 @@ const propTypes = {
 	contentCenter: PropTypes.bool,
 };
 
-const defaultProps = {
-	contentCenter: false,
-};
-
-const Layout = ({children, contentCenter}) => {
+const Layout = ({children, contentCenter = false}) => {
 	const {userId} = useParams();
 	const currentUser = auth.auth.currentUser;
 	const isHost = userId === currentUser?.uid;
@@ -92,6 +88,5 @@ const Layout = ({children, contentCenter}) => {
 };
 
 Layout.propTypes = propTypes;
-Layout.defaultProps = defaultProps;
 
 export default Layout;
