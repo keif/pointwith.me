@@ -3,22 +3,25 @@
     "pokerTables": {
       "$ownerId": {
         ".read": "auth != null",
-        ".write": "$ownerId === auth.uid",
         "$tableId": {
-          ".validate": "newData.hasChildren(['created', 'tableName', 'ownerId', 'ownerName'])",
           "created": {
+            ".write": "$ownerId === auth.uid",
             ".validate": "newData.isString() && newData.val().length > 0"
           },
           "tableName": {
+            ".write": "$ownerId === auth.uid",
             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
           },
           "ownerId": {
+            ".write": "$ownerId === auth.uid",
             ".validate": "newData.val() === $ownerId"
           },
           "ownerName": {
+            ".write": "$ownerId === auth.uid",
             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
           },
           "issues": {
+            ".write": "auth != null",
             "$issueId": {
               ".validate": "newData.hasChildren(['title', 'created'])",
               "title": {
