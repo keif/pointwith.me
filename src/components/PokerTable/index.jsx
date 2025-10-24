@@ -139,8 +139,9 @@ const PokerTable = () => {
 		const data = {
 			title: newIssueName,
 			created: new Date().toISOString(),
-			score: 0,
-			votes: {},
+			isLocked: false,
+			showVotes: false,
+			finalScore: null,
 		};
 		toast.promise(
 			update(child(ptIssuesRef, uid), data),
