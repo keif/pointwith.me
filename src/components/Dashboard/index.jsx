@@ -12,12 +12,18 @@ import * as pokerTablesApi from '../../api/pokerTables';
 import Layout from '../../containers/Layout';
 import withAuthentication from '../../containers/withAuthentication';
 import PokerTableNameForm from './PokerTableNameForm';
+import ConfirmDialog from '../common/ConfirmDialog';
 
 
 const Dashboard = () => {
 	const currentUser = auth.auth.currentUser;
 	const pokerTablesClient = pokerTablesApi.createClient(currentUser.uid);
 	const [pokerTables, setPokerTables] = useState([]);
+	const [deleteConfirmation, setDeleteConfirmation] = useState({
+		isOpen: false,
+		tableId: null,
+		tableName: '',
+	});
 
 	useEffect(() => {
 		loadPokerTables();
@@ -41,6 +47,24 @@ const Dashboard = () => {
 	const removePokerTable = (pokerTableId) => (e) => {
 		e.preventDefault();
 
+		const table = pokerTables.find(t => t.id === pokerTableId);
+		const tableName = table?.tableName || 'Table';
+
+		// Check if user has disabled confirmation
+		const skipConfirmation = localStorage.getItem('skipDeleteTableConfirmation') === 'true';
+
+		if (skipConfirmation) {
+			performDeleteTable(pokerTableId);
+		} else {
+			setDeleteConfirmation({
+				isOpen: true,
+				tableId: pokerTableId,
+				tableName,
+			});
+		}
+	};
+
+	const performDeleteTable = (pokerTableId) => {
 		// Optimistically deletes poker table. i.e. doesn't block the ui from updating
 		pokerTablesClient.remove(pokerTableId);
 
@@ -49,6 +73,16 @@ const Dashboard = () => {
 		);
 
 		setPokerTables(filteredPokerTables);
+	};
+
+	const handleConfirmDeleteTable = () => {
+		const {tableId} = deleteConfirmation;
+		performDeleteTable(tableId);
+		setDeleteConfirmation({ isOpen: false, tableId: null, tableName: '' });
+	};
+
+	const handleCancelDeleteTable = () => {
+		setDeleteConfirmation({ isOpen: false, tableId: null, tableName: '' });
 	};
 
 	const loadPokerTables = () => {
@@ -121,6 +155,19 @@ const Dashboard = () => {
 					</div>
 				</div>
 			</div>
+
+			{/* Delete Confirmation Dialog */}
+			<ConfirmDialog
+				isOpen={deleteConfirmation.isOpen}
+				title="Delete Poker Table"
+				message={`Are you sure you want to delete "${deleteConfirmation.tableName}"? This will permanently delete the table and all its issues. This action cannot be undone.`}
+				confirmText="Delete Table"
+				cancelText="Cancel"
+				onConfirm={handleConfirmDeleteTable}
+				onCancel={handleCancelDeleteTable}
+				showDontAskAgain={true}
+				dontAskAgainKey="skipDeleteTableConfirmation"
+			/>
 		</Layout>
 	);
 };

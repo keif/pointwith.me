@@ -17,6 +17,15 @@
           "ownerName": {
             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && $ownerId === auth.uid"
           },
+          "lastEdited": {
+            ".validate": "newData.isString()"
+          },
+          "lastEditedBy": {
+            ".validate": "newData.isString()"
+          },
+          "lastEditedByName": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
           "currentIssue": {
             ".validate": "newData.isString() || newData.isBoolean()"
           },
@@ -37,6 +46,15 @@
               },
               "finalScore": {
                 ".validate": "newData.isNumber() || newData.val() === null"
+              },
+              "lastEdited": {
+                ".validate": "newData.isString()"
+              },
+              "lastEditedBy": {
+                ".validate": "newData.isString()"
+              },
+              "lastEditedByName": {
+                ".validate": "newData.isString() && newData.val().length <= 100"
               },
               "$other": {
                 ".validate": false

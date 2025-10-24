@@ -11,9 +11,9 @@ const VotingBlock = ({onClick, isLocked, userVote}) => {
 	}
 
 	return (
-		<div className="card text-center">
+		<div className="text-center">
 			<div
-				className={`grid grid-cols-3 sm:grid-cols-4 gap-3 max-w-md mx-auto ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}
+				className={`grid grid-cols-4 sm:grid-cols-5 gap-2 max-w-lg mx-auto ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}
 				data-testid="voteCards"
 				id="voteCards"
 			>
@@ -22,7 +22,7 @@ const VotingBlock = ({onClick, isLocked, userVote}) => {
 						key={p}
 						onClick={() => handleSelect(p)}
 						className={`
-							aspect-square flex items-center justify-center text-xl font-bold rounded-lg
+							aspect-square flex items-center justify-center text-lg font-bold rounded-lg
 							transition-all cursor-pointer
 							${selectedValue === p || userVote === p
 								? 'bg-success text-white border-2 border-success scale-105'

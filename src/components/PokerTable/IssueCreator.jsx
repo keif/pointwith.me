@@ -7,8 +7,9 @@ import shortid from 'shortid';
 import {set, update} from 'firebase/database';
 import {format} from 'date-fns';
 import toast from 'react-hot-toast';
+import {formatEditHistory} from '../../utils/timeAgo';
 
-const IssueCreator = ({onClick, tableName, ownerName, created}) => {
+const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastEditedByName}) => {
     const navigate = useNavigate();
     const {userId, tableId} = useParams();
     const currentUser = auth.auth.currentUser;
@@ -38,8 +39,15 @@ const IssueCreator = ({onClick, tableName, ownerName, created}) => {
         }
 
         const pokerTableRef = db.pokerTable(userId, tableId);
+        const updateData = {
+            tableName: trimmedName,
+            lastEdited: new Date().toISOString(),
+            lastEditedBy: currentUser.uid,
+            lastEditedByName: currentUser.displayName || 'Anonymous',
+        };
+
         toast.promise(
-            update(pokerTableRef, { tableName: trimmedName }),
+            update(pokerTableRef, updateData),
             {
                 loading: 'Updating table name...',
                 success: 'Table name updated',
@@ -119,15 +127,22 @@ const IssueCreator = ({onClick, tableName, ownerName, created}) => {
                         </button>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-2 group">
-                        <h1 className="text-3xl font-bold">{tableName}</h1>
-                        <button
-                            onClick={handleStartEdit}
-                            className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
-                            title="Edit table name"
-                        >
-                            <Edit2 size={20} />
-                        </button>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-2 group">
+                            <h1 className="text-3xl font-bold">{tableName}</h1>
+                            <button
+                                onClick={handleStartEdit}
+                                className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                                title="Edit table name"
+                            >
+                                <Edit2 size={20} />
+                            </button>
+                        </div>
+                        {lastEdited && lastEditedByName && (
+                            <p className="text-xs text-gray-400 italic mt-1">
+                                {formatEditHistory({ lastEditedByName, lastEdited })}
+                            </p>
+                        )}
                     </div>
                 )}
             </div>

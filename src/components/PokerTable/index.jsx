@@ -1,12 +1,13 @@
 // Theirs
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {format} from 'date-fns';
-import {Lock, Unlock, Trophy, X, Users, Eye, UserCheck, RefreshCw} from 'lucide-react';
+import {Lock, Unlock, Trophy, X, Users, Eye, UserCheck, RefreshCw, Edit2, Check} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Ours
 import {auth, db} from '../../firebase';
 import * as issues from '../../api/issues';
+import {formatEditHistory} from '../../utils/timeAgo';
 import Layout from '../../containers/Layout';
 import Issue from '../Issue';
 import withAuthentication from '../../containers/withAuthentication';
@@ -16,6 +17,7 @@ import shortid from 'shortid';
 import IssueCreator from './IssueCreator';
 import ModalActions from './ModalActions';
 import RoleSelectionModal from './RoleSelectionModal';
+import ConfirmDialog from '../common/ConfirmDialog';
 import * as dbRefs from '../../firebase/db';
 
 
@@ -36,6 +38,13 @@ const PokerTable = () => {
 	});
 	const [userRole, setUserRole] = React.useState(null);
 	const [showRoleModal, setShowRoleModal] = React.useState(true);
+	const [editingIssueId, setEditingIssueId] = useState(null);
+	const [editedIssueTitle, setEditedIssueTitle] = useState('');
+	const [deleteConfirmation, setDeleteConfirmation] = useState({
+		isOpen: false,
+		issueId: null,
+		issueName: '',
+	});
 	const pokerTableRef = db.pokerTable(userId, tableId);
 	const ptIssuesRef = db.pokerTableIssuesRoot(
 		userId,  // Use table owner's ID from URL, not current user
@@ -155,10 +164,26 @@ const PokerTable = () => {
 
 	const removeIssue = (issueId) => (e) => {
 		e.preventDefault();
+		e.stopPropagation();
 
 		const issue = state.issues.find(i => i.id === issueId);
 		const issueName = issue?.title || 'Issue';
 
+		// Check if user has disabled confirmation
+		const skipConfirmation = localStorage.getItem('skipDeleteIssueConfirmation') === 'true';
+
+		if (skipConfirmation) {
+			performDeleteIssue(issueId, issueName);
+		} else {
+			setDeleteConfirmation({
+				isOpen: true,
+				issueId,
+				issueName,
+			});
+		}
+	};
+
+	const performDeleteIssue = (issueId, issueName) => {
 		// Optimistically update UI
 		const filteredIssues = state.issues.filter(({id}) => id !== issueId);
 		setState(prevState => ({
@@ -179,6 +204,16 @@ const PokerTable = () => {
 				},
 			}
 		);
+	};
+
+	const handleConfirmDelete = () => {
+		const {issueId, issueName} = deleteConfirmation;
+		performDeleteIssue(issueId, issueName);
+		setDeleteConfirmation({ isOpen: false, issueId: null, issueName: '' });
+	};
+
+	const handleCancelDelete = () => {
+		setDeleteConfirmation({ isOpen: false, issueId: null, issueName: '' });
 	};
 
 	const handleViewIssue = async (currentIssue) => {
@@ -207,6 +242,62 @@ const PokerTable = () => {
 			.catch((error) => {
 				toast.error('Failed to close issue: ' + error.message);
 			});
+	};
+
+	const handleStartEditIssue = (issueId, currentTitle) => (e) => {
+		e.stopPropagation(); // Prevent triggering handleViewIssue
+		setEditingIssueId(issueId);
+		setEditedIssueTitle(currentTitle);
+	};
+
+	const handleCancelEditIssue = (e) => {
+		e.stopPropagation();
+		setEditingIssueId(null);
+		setEditedIssueTitle('');
+	};
+
+	const handleSaveEditIssue = (issueId) => (e) => {
+		e.stopPropagation();
+		const trimmedTitle = editedIssueTitle.trim();
+
+		if (!trimmedTitle) {
+			toast.error('Issue title cannot be empty');
+			return;
+		}
+		if (trimmedTitle.length > 200) {
+			toast.error('Issue title must be 200 characters or less');
+			return;
+		}
+
+		const issueRef = db.pokerTableIssue(userId, tableId, issueId);
+		const updateData = {
+			title: trimmedTitle,
+			lastEdited: new Date().toISOString(),
+			lastEditedBy: currentUser.uid,
+			lastEditedByName: currentUser.displayName || 'Anonymous',
+		};
+
+		toast.promise(
+			update(issueRef, updateData),
+			{
+				loading: 'Updating issue title...',
+				success: 'Issue title updated',
+				error: 'Failed to update issue title',
+			}
+		).then(() => {
+			setEditingIssueId(null);
+			setEditedIssueTitle('');
+		}).catch(() => {
+			// Error handled by toast
+		});
+	};
+
+	const handleIssueKeyDown = (issueId) => (e) => {
+		if (e.key === 'Enter') {
+			handleSaveEditIssue(issueId)(e);
+		} else if (e.key === 'Escape') {
+			handleCancelEditIssue(e);
+		}
 	};
 
 	const loadPokerTable = () => {
@@ -249,6 +340,8 @@ const PokerTable = () => {
 						tableName={state.pokerTable.tableName}
 						ownerName={state.pokerTable.ownerName}
 						created={state.pokerTable.created}
+						lastEdited={state.pokerTable.lastEdited}
+						lastEditedByName={state.pokerTable.lastEditedByName}
 					/>
 				</div>
 
@@ -309,48 +402,99 @@ const PokerTable = () => {
 					<h1 className="text-3xl font-bold mb-6">Table Issues</h1>
 					<div className="divide-y divide-gray-200">
 						{state.issues.length > 0 ? state.issues.map((s) => (
-							<div key={s.id} className="flex items-center justify-between py-4 hover:bg-gray-50 transition-colors">
-								<div
-									onClick={() => handleViewIssue(s.id)}
-									role="button"
-									className="flex-1 cursor-pointer"
-								>
-									<div className="flex items-center gap-2 mb-1">
-										{s.isLocked ? <Lock size={16} className="text-gray-500" /> : <Unlock size={16} className="text-gray-500" />}
-										<h3 className="text-lg font-semibold text-gray-900">{s.title}</h3>
-										{s.finalScore !== null && s.finalScore !== undefined && (
-											<>
-												<Trophy size={16} className="text-warning" />
-												<span className="text-success font-bold">
-													{s.finalScore}
-												</span>
-											</>
-										)}
+							<div key={s.id} className="flex items-center justify-between py-4 hover:bg-gray-50 transition-colors group">
+								{editingIssueId === s.id ? (
+									// Edit Mode
+									<div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
+										<input
+											type="text"
+											value={editedIssueTitle}
+											onChange={(e) => setEditedIssueTitle(e.target.value)}
+											onKeyDown={handleIssueKeyDown(s.id)}
+											className="flex-1 text-lg font-semibold border-2 border-primary rounded px-2 py-1"
+											autoFocus
+											maxLength={200}
+										/>
+										<button
+											onClick={handleSaveEditIssue(s.id)}
+											className="p-2 bg-success text-white rounded hover:bg-green-600 transition-colors"
+											title="Save"
+										>
+											<Check size={18} />
+										</button>
+										<button
+											onClick={handleCancelEditIssue}
+											className="p-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors"
+											title="Cancel"
+										>
+											<X size={18} />
+										</button>
 									</div>
-									{s.created && (
-										<p className="text-sm text-gray-500">
-											Created: {(() => {
-												try {
-													const date = new Date(s.created);
-													return isNaN(date.getTime()) ? 'Unknown' : format(date, 'MM/dd/yyyy hh:mm a');
-												} catch (e) {
-													return 'Unknown';
-												}
-											})()}
-										</p>
-									)}
-								</div>
+								) : (
+									// View Mode
+									<>
+										<div
+											onClick={() => handleViewIssue(s.id)}
+											role="button"
+											className="flex-1 cursor-pointer"
+										>
+											<div className="flex items-center gap-2 mb-1">
+												{s.isLocked ? <Lock size={16} className="text-gray-500" /> : <Unlock size={16} className="text-gray-500" />}
+												<h3 className="text-lg font-semibold text-gray-900">{s.title}</h3>
+												{userId === currentUser.uid && (
+													<button
+														onClick={handleStartEditIssue(s.id, s.title)}
+														className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+														title="Edit issue title"
+													>
+														<Edit2 size={16} />
+													</button>
+												)}
+												{s.finalScore !== null && s.finalScore !== undefined && (
+													<>
+														<Trophy size={16} className="text-warning" />
+														<span className="text-success font-bold">
+															{s.finalScore}
+														</span>
+													</>
+												)}
+											</div>
+											<div className="text-sm text-gray-500">
+												{s.created && (
+													<p>
+														Created: {(() => {
+															try {
+																const date = new Date(s.created);
+																return isNaN(date.getTime()) ? 'Unknown' : format(date, 'MM/dd/yyyy hh:mm a');
+															} catch (e) {
+																return 'Unknown';
+															}
+														})()}
+													</p>
+												)}
+												{s.lastEdited && s.lastEditedByName && (
+													<p className="text-xs text-gray-400 italic mt-1">
+														{formatEditHistory({
+															lastEditedByName: s.lastEditedByName,
+															lastEdited: s.lastEdited
+														})}
+													</p>
+												)}
+											</div>
+										</div>
 
-								{/* Only show the delete action if the authenticated user is the owner. */}
-								{userId === currentUser.uid && (
-									<button
-										data-testid="delete-issue-button"
-										onClick={removeIssue(s.id)}
-										className="ml-4 p-2 text-danger hover:bg-red-50 rounded transition-colors"
-										aria-label="Delete issue"
-									>
-										<X size={20} />
-									</button>
+										{/* Only show the delete action if the authenticated user is the owner. */}
+										{userId === currentUser.uid && (
+											<button
+												data-testid="delete-issue-button"
+												onClick={removeIssue(s.id)}
+												className="ml-4 p-2 text-danger hover:bg-red-50 rounded transition-colors"
+												aria-label="Delete issue"
+											>
+												<X size={20} />
+											</button>
+										)}
+									</>
 								)}
 							</div>
 						)) : (
@@ -362,9 +506,9 @@ const PokerTable = () => {
 
 			{/* Modal */}
 			{!!state.currentIssue && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-16 overflow-y-auto">
-					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-16">
-						<div className="p-6">
+				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-8 overflow-y-auto">
+					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-8">
+						<div className="p-4">
 							<Issue issue={state.currentIssue} participants={state.participants} userRole={userRole} onToggleRole={handleToggleRole} />
 						</div>
 						{(userId === currentUser.uid) && (
@@ -378,6 +522,19 @@ const PokerTable = () => {
 			{showRoleModal && (
 				<RoleSelectionModal onSelectRole={handleSelectRole} />
 			)}
+
+			{/* Delete Confirmation Dialog */}
+			<ConfirmDialog
+				isOpen={deleteConfirmation.isOpen}
+				title="Delete Issue"
+				message={`Are you sure you want to delete "${deleteConfirmation.issueName}"? This action cannot be undone.`}
+				confirmText="Delete Issue"
+				cancelText="Cancel"
+				onConfirm={handleConfirmDelete}
+				onCancel={handleCancelDelete}
+				showDontAskAgain={true}
+				dontAskAgainKey="skipDeleteIssueConfirmation"
+			/>
 		</Layout>
 	);
 };

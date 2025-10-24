@@ -7,6 +7,7 @@ import {useParams} from 'react-router-dom';
 import {child, onValue, update} from 'firebase/database';
 import VotingBlock from './VotingBlock';
 import Controls from './Controls';
+import {formatEditHistory} from '../../utils/timeAgo';
 
 const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => {
 	const {userId, tableId} = useParams();
@@ -19,6 +20,8 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 		showVotes: false,
 		title: '',
 		finalScore: null,
+		lastEdited: null,
+		lastEditedByName: null,
 	});
 	const [votesState, setVotesState] = useState({
 		isLoaded: false,
@@ -54,6 +57,8 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 				isLocked: issue.isLocked || false,
 				showVotes: issue.showVotes || false,
 				finalScore: issue.finalScore !== undefined ? issue.finalScore : null,
+				lastEdited: issue.lastEdited || null,
+				lastEditedByName: issue.lastEditedByName || null,
 				isLoaded: true,
 			};
 			setIssueState(newState);
@@ -170,8 +175,15 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 			return;
 		}
 
+		const updateData = {
+			title: trimmedTitle,
+			lastEdited: new Date().toISOString(),
+			lastEditedBy: currentUser.uid,
+			lastEditedByName: currentUser.displayName || 'Anonymous',
+		};
+
 		toast.promise(
-			update(issueRef, { title: trimmedTitle }),
+			update(issueRef, updateData),
 			{
 				loading: 'Updating issue title...',
 				success: 'Issue title updated',
@@ -227,7 +239,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 
 	return (
 		<div className="text-center" id="issue">
-			<div className="mb-4 flex items-center justify-center">
+			<div className="mb-3 flex items-center justify-center">
 				{isEditingTitle && isTableOwner ? (
 					<div className="flex items-center gap-2 w-full max-w-2xl">
 						<input
@@ -235,84 +247,91 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 							value={editedTitle}
 							onChange={(e) => setEditedTitle(e.target.value)}
 							onKeyDown={handleTitleKeyDown}
-							className="text-4xl font-bold border-2 border-primary rounded px-3 py-2 flex-1 text-center"
+							className="text-2xl font-bold border-2 border-primary rounded px-2 py-1 flex-1 text-center"
 							autoFocus
 							maxLength={200}
 						/>
 						<button
 							onClick={handleSaveEditTitle}
-							className="p-2 bg-success text-white rounded hover:bg-green-600 transition-colors flex-shrink-0"
+							className="p-1.5 bg-success text-white rounded hover:bg-green-600 transition-colors flex-shrink-0"
 							title="Save"
 						>
-							<Check size={24} />
+							<Check size={20} />
 						</button>
 						<button
 							onClick={handleCancelEditTitle}
-							className="p-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors flex-shrink-0"
+							className="p-1.5 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors flex-shrink-0"
 							title="Cancel"
 						>
-							<X size={24} />
+							<X size={20} />
 						</button>
 					</div>
 				) : (
-					<div className="flex items-center gap-2 group">
-						<h1 className="text-4xl font-bold">{issueState.title}</h1>
-						{isTableOwner && (
-							<button
-								onClick={handleStartEditTitle}
-								className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
-								title="Edit issue title"
-							>
-								<Edit2 size={24} />
-							</button>
+					<div className="flex flex-col items-center">
+						<div className="flex items-center gap-2 group">
+							<h1 className="text-2xl font-bold">{issueState.title}</h1>
+							{isTableOwner && (
+								<button
+									onClick={handleStartEditTitle}
+									className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+									title="Edit issue title"
+								>
+									<Edit2 size={18} />
+								</button>
+							)}
+						</div>
+						{issueState.lastEdited && issueState.lastEditedByName && (
+							<p className="text-xs text-gray-400 italic mt-1">
+								{formatEditHistory({
+									lastEditedByName: issueState.lastEditedByName,
+									lastEdited: issueState.lastEdited
+								})}
+							</p>
 						)}
 					</div>
 				)}
 			</div>
 			{issueState.finalScore !== null && issueState.finalScore !== undefined && (
-				<div className="flex items-center justify-center gap-2 mb-6 text-2xl text-success">
-					<Trophy size={28} />
+				<div className="flex items-center justify-center gap-2 mb-3 text-xl text-success">
+					<Trophy size={22} />
 					<span className="font-semibold">Final Score: {issueState.finalScore}</span>
 				</div>
 			)}
 
 			{/* Participants Vote Status */}
 			{participants.length > 0 && (
-				<div className="mb-6">
-					<div className="flex items-center justify-center gap-4 flex-wrap">
+				<div className="mb-3">
+					<div className="flex items-center justify-center gap-2 flex-wrap">
 						{participantsWithVotes.map((participant) => {
 							const isCurrentUser = participant.id === currentUser.uid;
 							return (
 								<div
 									key={participant.id}
 									onClick={isCurrentUser && onToggleRole ? onToggleRole : undefined}
-									className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+									className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs ${
 										isCurrentUser
 											? 'bg-primary bg-opacity-10 border border-primary cursor-pointer hover:bg-primary hover:bg-opacity-20 transition-colors'
 											: 'bg-gray-100'
 									}`}
 									title={isCurrentUser ? 'Click to toggle role' : ''}
 								>
-									<div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+									<div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold ${
 										isCurrentUser
 											? 'bg-primary text-white ring-1 ring-primary ring-offset-1'
 											: 'bg-gray-400 text-white'
 									}`}>
 										{participant.displayName.charAt(0).toUpperCase()}
 									</div>
-									<span className="text-sm font-medium">
+									<span className="font-medium">
 										{participant.displayName}
 										{isCurrentUser && <span className="text-primary ml-1">(You)</span>}
 									</span>
 									{participant.isSpectatorRole ? (
-										<div className="flex items-center gap-1 text-xs text-gray-500">
-											<Eye size={14} />
-											<span>Spectator</span>
-										</div>
+										<Eye size={12} className="text-gray-500" />
 									) : participant.hasVoted ? (
-										<CheckCircle size={16} className="text-success" />
+										<CheckCircle size={14} className="text-success" />
 									) : (
-										<Circle size={16} className="text-gray-400" />
+										<Circle size={14} className="text-gray-400" />
 									)}
 								</div>
 							);
@@ -321,7 +340,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 				</div>
 			)}
 
-			<div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+			<div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm mb-3">
 				{(isTableOwner) && (
 					<Controls
 						isLocked={issueState.isLocked}
@@ -331,7 +350,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 						finalScore={issueState.finalScore}
 					/>
 				)}
-				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6" id="voteCards">
+				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mt-3" id="voteCards">
 					{votesState.votes?.map((v) => {
 						const participant = participants.find(p => p.id === v.userId);
 						const voterName = participant?.displayName || 'Unknown';
@@ -341,21 +360,21 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 							<div
 								key={v.userId}
 								className={`
-									flex flex-col items-center justify-center p-4 rounded-lg gap-2
+									flex flex-col items-center justify-center p-2 rounded-lg gap-1
 									${(votesState.mostVotes === v.vote && issueState.showVotes)
 										? 'bg-success text-white border-2 border-success'
 										: 'bg-primary text-white border-2 border-primary'}
 									${isCurrentUserVote ? 'ring-2 ring-offset-2 ring-primary' : ''}
 								`}
 							>
-								<div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-sm font-semibold">
+								<div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-xs font-semibold">
 									{voterName.charAt(0).toUpperCase()}
 								</div>
 								<div className="text-xs font-medium truncate w-full text-center">
 									{voterName}
 									{isCurrentUserVote && ' (You)'}
 								</div>
-								<div className="text-3xl font-bold">
+								<div className="text-2xl font-bold">
 									{(issueState.showVotes) ? v.vote : '?'}
 								</div>
 							</div>
@@ -371,7 +390,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 				/>
 			)}
 			{isSpectator && !issueState.isLocked && (
-				<div className="text-center py-6">
+				<div className="text-center py-3">
 					<p className="text-gray-500 text-sm">
 						You are watching as a spectator. Click your name above to switch to voter mode.
 					</p>
