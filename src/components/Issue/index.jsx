@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Trophy, Loader2, CheckCircle, Circle, Eye} from 'lucide-react';
+import {Trophy, Loader2, CheckCircle, Circle, Eye, Edit2, Check, X} from 'lucide-react';
 import toast from 'react-hot-toast';
 import {auth, db} from '../../firebase';
 import './issue.css';
@@ -26,6 +26,8 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 		userVote: null,
 		votes: [],
 	});
+	const [isEditingTitle, setIsEditingTitle] = useState(false);
+	const [editedTitle, setEditedTitle] = useState('');
 	const issueRef = db.pokerTableIssue(
 		userId,
 		tableId,
@@ -147,6 +149,49 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 			});
 	};
 
+	const handleStartEditTitle = () => {
+		setEditedTitle(issueState.title);
+		setIsEditingTitle(true);
+	};
+
+	const handleCancelEditTitle = () => {
+		setEditedTitle(issueState.title);
+		setIsEditingTitle(false);
+	};
+
+	const handleSaveEditTitle = () => {
+		const trimmedTitle = editedTitle.trim();
+		if (!trimmedTitle) {
+			toast.error('Issue title cannot be empty');
+			return;
+		}
+		if (trimmedTitle.length > 200) {
+			toast.error('Issue title must be 200 characters or less');
+			return;
+		}
+
+		toast.promise(
+			update(issueRef, { title: trimmedTitle }),
+			{
+				loading: 'Updating issue title...',
+				success: 'Issue title updated',
+				error: 'Failed to update issue title',
+			}
+		).then(() => {
+			setIsEditingTitle(false);
+		}).catch(() => {
+			setEditedTitle(issueState.title);
+		});
+	};
+
+	const handleTitleKeyDown = (e) => {
+		if (e.key === 'Enter') {
+			handleSaveEditTitle();
+		} else if (e.key === 'Escape') {
+			handleCancelEditTitle();
+		}
+	};
+
 	//suggestion() {
 	//let suggestion = '??';
 	//let mode = '??';
@@ -182,7 +227,48 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 
 	return (
 		<div className="text-center" id="issue">
-			<h1 className="text-4xl font-bold mb-4">{issueState.title}</h1>
+			<div className="mb-4 flex items-center justify-center">
+				{isEditingTitle && isTableOwner ? (
+					<div className="flex items-center gap-2 w-full max-w-2xl">
+						<input
+							type="text"
+							value={editedTitle}
+							onChange={(e) => setEditedTitle(e.target.value)}
+							onKeyDown={handleTitleKeyDown}
+							className="text-4xl font-bold border-2 border-primary rounded px-3 py-2 flex-1 text-center"
+							autoFocus
+							maxLength={200}
+						/>
+						<button
+							onClick={handleSaveEditTitle}
+							className="p-2 bg-success text-white rounded hover:bg-green-600 transition-colors flex-shrink-0"
+							title="Save"
+						>
+							<Check size={24} />
+						</button>
+						<button
+							onClick={handleCancelEditTitle}
+							className="p-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors flex-shrink-0"
+							title="Cancel"
+						>
+							<X size={24} />
+						</button>
+					</div>
+				) : (
+					<div className="flex items-center gap-2 group">
+						<h1 className="text-4xl font-bold">{issueState.title}</h1>
+						{isTableOwner && (
+							<button
+								onClick={handleStartEditTitle}
+								className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+								title="Edit issue title"
+							>
+								<Edit2 size={24} />
+							</button>
+						)}
+					</div>
+				)}
+			</div>
 			{issueState.finalScore !== null && issueState.finalScore !== undefined && (
 				<div className="flex items-center justify-center gap-2 mb-6 text-2xl text-success">
 					<Trophy size={28} />
