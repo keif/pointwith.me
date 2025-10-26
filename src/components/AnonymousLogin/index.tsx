@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
-import { signInAnonymouslyWithName } from '../../firebase/auth';
+import { signInAnonymouslyWithName } from '@/firebase/auth';
 
 interface AnonymousLoginProps {
   onSuccess?: ((user: any) => void) | null;

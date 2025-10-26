@@ -2,7 +2,7 @@ import React, {Component, useEffect, useState} from 'react';
 import Delay from 'react-delay';
 import store from 'store';
 
-import { auth } from '../firebase';
+import { auth } from '@/firebase';
 import {useLocation, useNavigate} from 'react-router-dom';
 
 export default WrappedComponent => {

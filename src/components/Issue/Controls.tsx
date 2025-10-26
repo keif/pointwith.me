@@ -2,9 +2,9 @@ import {Eye, EyeOff, Lock, Unlock, CheckCircle, Check, Save} from 'lucide-react'
 import React, {useState} from 'react';
 import {update} from 'firebase/database';
 import toast from 'react-hot-toast';
-import {db} from '../../firebase';
+import {db} from '@/firebase';
 import {useParams} from 'react-router-dom';
-import {calculateAverage, calculateMode, calculateSuggestedScore} from '../../utils/voteCalculations';
+import {calculateAverage, calculateMode, calculateSuggestedScore} from '@/utils/voteCalculations';
 
 const Controls = ({isLocked, issue, showVotes, votes, finalScore}) => {
 	const {userId, tableId} = useParams();

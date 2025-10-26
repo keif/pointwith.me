@@ -7,7 +7,7 @@ import {
     googleOAuth,
     popUpSignIn,
     twitterOAuth
-} from '../../firebase/auth';
+} from '@/firebase/auth';
 
 interface SocialButtonListProps {
     currentUser?: any;

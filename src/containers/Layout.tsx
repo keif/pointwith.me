@@ -1,6 +1,6 @@
 import React, {ReactNode} from 'react';
 import {User, Twitter, Github, Settings, ArrowLeft} from 'lucide-react';
-import {auth} from '../firebase';
+import {auth} from '@/firebase';
 import {useParams, Link} from 'react-router-dom';
 
 interface LayoutProps {

@@ -2,14 +2,14 @@ import React, {lazy, Suspense} from 'react';
 import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import {Toaster} from 'react-hot-toast';
 
-import Login from '../components/Login';
-import '../style.css';
+import Login from '@/components/Login';
+import '@/style.css';
 
 // Lazy load route components
-const Dashboard = lazy(() => import('../components/Dashboard'));
-const PokerTable = lazy(() => import('../components/PokerTable'));
-const About = lazy(() => import('../components/About'));
-const Settings = lazy(() => import('../components/Settings'));
+const Dashboard = lazy(() => import('@/components/Dashboard'));
+const PokerTable = lazy(() => import('@/components/PokerTable'));
+const About = lazy(() => import('@/components/About'));
+const Settings = lazy(() => import('@/components/Settings'));
 
 // Loading fallback component
 const LoadingFallback = () => (

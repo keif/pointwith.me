@@ -5,12 +5,12 @@ import {Lock, Unlock, Trophy, X, Users, Eye, UserCheck, RefreshCw, Edit2, Check}
 import toast from 'react-hot-toast';
 
 // Ours
-import {auth, db} from '../../firebase';
-import * as issues from '../../api/issues';
-import {formatEditHistory} from '../../utils/timeAgo';
-import Layout from '../../containers/Layout';
+import {auth, db} from '@/firebase';
+import * as issues from '@/api/issues';
+import {formatEditHistory} from '@/utils/timeAgo';
+import Layout from '@/containers/Layout';
 import Issue from '../Issue';
-import withAuthentication from '../../containers/withAuthentication';
+import withAuthentication from '@/containers/withAuthentication';
 import {useParams} from 'react-router-dom';
 import {child, onValue, set, update, onDisconnect, remove} from 'firebase/database';
 import shortid from 'shortid';
@@ -18,8 +18,8 @@ import IssueCreator from './IssueCreator';
 import ModalActions from './ModalActions';
 import RoleSelectionModal from './RoleSelectionModal';
 import ConfirmDialog from '../common/ConfirmDialog';
-import * as dbRefs from '../../firebase/db';
-import {useInlineEdit} from '../../hooks/useInlineEdit';
+import * as dbRefs from '@/firebase/db';
+import {useInlineEdit} from '@/hooks/useInlineEdit';
 
 
 const PokerTable = () => {

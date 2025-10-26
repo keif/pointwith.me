@@ -1,14 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {Trophy, Loader2, CheckCircle, Circle, Eye, Edit2, Check, X} from 'lucide-react';
 import toast from 'react-hot-toast';
-import {auth, db} from '../../firebase';
+import {auth, db} from '@/firebase';
 import './issue.css';
 import {useParams} from 'react-router-dom';
 import {child, onValue, update} from 'firebase/database';
 import VotingBlock from './VotingBlock';
 import Controls from './Controls';
-import {formatEditHistory} from '../../utils/timeAgo';
-import {useInlineEdit} from '../../hooks/useInlineEdit';
+import {formatEditHistory} from '@/utils/timeAgo';
+import {useInlineEdit} from '@/hooks/useInlineEdit';
 
 const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => {
 	const {userId, tableId} = useParams();

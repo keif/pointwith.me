@@ -1,6 +1,6 @@
-import * as db from '../firebase/db';
+import * as db from '@/firebase/db';
 import { remove as firebaseRemove } from 'firebase/database';
-import type { IssueClient } from '../types';
+import type { IssueClient } from '@/types';
 
 /**
  * Creates an api client for managing issue data within a specific poker table.

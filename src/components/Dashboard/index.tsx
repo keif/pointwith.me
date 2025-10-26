@@ -7,10 +7,10 @@ import {onValue, set} from 'firebase/database';
 import shortid from 'shortid';
 
 // Ours
-import {auth, db} from '../../firebase';
-import * as pokerTablesApi from '../../api/pokerTables';
-import Layout from '../../containers/Layout';
-import withAuthentication from '../../containers/withAuthentication';
+import {auth, db} from '@/firebase';
+import * as pokerTablesApi from '@/api/pokerTables';
+import Layout from '@/containers/Layout';
+import withAuthentication from '@/containers/withAuthentication';
 import PokerTableNameForm from './PokerTableNameForm';
 import ConfirmDialog from '../common/ConfirmDialog';
 

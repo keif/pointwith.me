@@ -1,6 +1,6 @@
-import * as db from '../firebase/db';
+import * as db from '@/firebase/db';
 import { remove as firebaseRemove } from 'firebase/database';
-import type { PokerTableClient } from '../types';
+import type { PokerTableClient } from '@/types';
 
 /**
  * Creates an api client for managing poker table data.

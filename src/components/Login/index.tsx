@@ -1,10 +1,10 @@
 import React, {useEffect} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import store from 'store';
-import Layout from '../../containers/Layout';
+import Layout from '@/containers/Layout';
 import SocialButtonList from '../SocialButtonList';
 import AnonymousLogin from '../AnonymousLogin';
-import {auth} from '../../firebase';
+import {auth} from '@/firebase';
 
 const Login = () => {
 	const navigate = useNavigate();

@@ -2,12 +2,12 @@ import {Home, Edit2, Check, X} from 'lucide-react';
 import IssueNameForm from './IssueNameForm';
 import React from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {auth, db} from '../../firebase';
+import {auth, db} from '@/firebase';
 import {update} from 'firebase/database';
 import {format} from 'date-fns';
 import toast from 'react-hot-toast';
-import {formatEditHistory} from '../../utils/timeAgo';
-import {useInlineEdit} from '../../hooks/useInlineEdit';
+import {formatEditHistory} from '@/utils/timeAgo';
+import {useInlineEdit} from '@/hooks/useInlineEdit';
 
 const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastEditedByName}) => {
     const navigate = useNavigate();

@@ -3,8 +3,8 @@ import {Settings as SettingsIcon, Trash2, ArrowLeft} from 'lucide-react';
 import {Link} from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-import Layout from '../../containers/Layout';
-import withAuthentication from '../../containers/withAuthentication';
+import Layout from '@/containers/Layout';
+import withAuthentication from '@/containers/withAuthentication';
 
 const Settings = () => {
 	const [skipIssueConfirmation, setSkipIssueConfirmation] = useState(false);

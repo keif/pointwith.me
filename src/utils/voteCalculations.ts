@@ -1,5 +1,5 @@
 import { roundUpToPrime } from './primes';
-import type { Vote } from '../types';
+import type { Vote } from '@/types';
 
 /**
  * Calculate the average of all votes

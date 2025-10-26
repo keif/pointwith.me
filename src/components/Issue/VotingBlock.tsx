@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import fibonacci from '../../utils/fibonacci';
+import fibonacci from '@/utils/fibonacci';
 
 const availablePoints = [...new Set(fibonacci(8))];
 const VotingBlock = ({onClick, isLocked, userVote}) => {

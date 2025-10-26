@@ -1,8 +1,8 @@
 import React from 'react';
-import App from './containers/App';
-import * as serviceWorker from './serviceWorker';
-import './tailwind.css';
-import './index.css';
+import App from '@/containers/App';
+import * as serviceWorker from '@/serviceWorker';
+import '@/tailwind.css';
+import '@/index.css';
 import {createRoot} from 'react-dom/client';
 
 const container = document.getElementById('root');
