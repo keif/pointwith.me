@@ -49,7 +49,7 @@ describe('Issue Component', () => {
 
 	test('renders Issue component and displays loading message', () => {
 		// Render the component
-		const {container} = render(<Issue issue="testIssue"/>);
+		const {container} = render(<Issue issue="testIssue" onToggleRole={() => {}}/>);
 
 		// Check if the loading spinner is displayed
 		const spinner = container.querySelector('.animate-spin');
@@ -70,7 +70,7 @@ describe('Issue Component', () => {
 		});
 
 		// Render the component
-		const {getByText} = render(<Issue issue="testIssue"/>);
+		const {getByText} = render(<Issue issue="testIssue" onToggleRole={() => {}}/>);
 
 		// Wait for data to be loaded
 		await waitFor(() => {
@@ -95,7 +95,7 @@ describe('Issue Component', () => {
 		});
 
 		// Render the component
-		const {getByTestId} = render(<Issue issue="testIssue"/>);
+		const {getByTestId} = render(<Issue issue="testIssue" onToggleRole={() => {}}/>);
 
 		// Wait for data to be loaded
 		await waitFor(() => {

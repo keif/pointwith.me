@@ -50,7 +50,8 @@ describe('SocialButtonList Component', () => {
     });
 
     test.skip('navigates to dashboard after successful authentication', async () => {
-        popUpSignIn.mockResolvedValueOnce({user: {providerData: ['provider']}});
+        const { popUpSignIn } = await import('../../firebase/auth');
+        vi.mocked(popUpSignIn).mockResolvedValueOnce({user: {providerData: ['provider']}} as any);
         const {getByText} = render(<SocialButtonList currentUser={null}/>);
         fireEvent.click(getByText('google'));
 

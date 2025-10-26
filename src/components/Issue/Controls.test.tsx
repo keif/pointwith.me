@@ -6,7 +6,7 @@ import Controls from './Controls';
 
 // Mock the firebase functions
 vi.mock('firebase/database', () => ({
-    update: vi.fn()
+    update: vi.fn(() => Promise.resolve())
 }));
 
 vi.mock('@/firebase', () => ({
@@ -35,7 +35,7 @@ describe('Controls component', () => {
     test('rendered correctly', () => {
         // Render the component
         const {getByText} = render(
-            <Controls isLocked={false} issue="testIssue" showVotes={false}/>
+            <Controls isLocked={false} issue="testIssue" showVotes={false} votes={[]} finalScore={null}/>
         );
 
         // Check if the buttons and their initial state are rendered correctly
