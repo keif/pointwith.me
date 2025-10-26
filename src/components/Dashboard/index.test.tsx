@@ -94,16 +94,21 @@ describe('Dashboard Page', () => {
 			expect(getByText('Test Table')).toBeInTheDocument();
 		});
 
-		// Click the delete button
+		// Click the delete button - this opens confirmation dialog
 		fireEvent.click(getByTestId('delete-button'));
 
-		// Verify that the poker table is deleted optimistically
-		expect(remove).toHaveBeenCalledWith('randomuserstring');
-
-		// Verify that the poker table is removed from the UI
+		// Wait for confirmation dialog to appear and confirm deletion
 		await waitFor(() => {
-			const table = queryByText('Test Table');
-			expect(table).not.toBeInTheDocument();
+			expect(getByText('Delete Poker Table')).toBeInTheDocument();
+		});
+
+		// Click the confirm button
+		const confirmButton = getByText('Delete Table');
+		fireEvent.click(confirmButton);
+
+		// Verify that the poker table is deleted
+		await waitFor(() => {
+			expect(remove).toHaveBeenCalledWith('randomuserstring');
 		});
 	});
 

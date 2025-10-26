@@ -49,10 +49,11 @@ describe('Issue Component', () => {
 
 	test('renders Issue component and displays loading message', () => {
 		// Render the component
-		const {getByText} = render(<Issue issue="testIssue"/>);
+		const {container} = render(<Issue issue="testIssue"/>);
 
-		// Check if the loading message is displayed
-		expect(getByText('Loading')).toBeInTheDocument();
+		// Check if the loading spinner is displayed
+		const spinner = container.querySelector('.animate-spin');
+		expect(spinner).toBeInTheDocument();
 	});
 
 	test('renders Issue component with Controls when isTableOwner is true', async () => {

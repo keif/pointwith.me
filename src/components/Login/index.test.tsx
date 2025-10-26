@@ -25,7 +25,7 @@ vi.mock('store', () => ({
 vi.mock('@/firebase', () => ({
 	auth: {
 		auth: {
-			onAuthStateChanged: vi.fn()
+			onAuthStateChanged: vi.fn(() => vi.fn()) // Return unsubscribe function
 		}
 	}
 }));
@@ -43,13 +43,16 @@ vi.mock('../AnonymousLogin', () => ({
 }));
 
 describe('Login Component', () => {
-	test('renders Login component', () => {
+	test('renders Login component', async () => {
+		const { useParams } = await import('react-router-dom');
+		vi.mocked(useParams).mockReturnValue({});
+
 		const { getByText } = render(
 			<BrowserRouter>
 				<Login />
 			</BrowserRouter>
 		);
-		expect(getByText('Sign In - It’s FREE')).toBeInTheDocument();
+		expect(getByText("Sign In - It's FREE")).toBeInTheDocument();
 	});
 
 	test('navigates based on authentication state', async () => {
