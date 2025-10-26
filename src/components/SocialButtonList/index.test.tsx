@@ -1,26 +1,32 @@
-// Mocks
-jest.mock('react-router-dom', () => ({
-    ...jest.requireActual('react-router-dom'),
-    useNavigate: jest.fn(),
-}));
-
-jest.mock('../../firebase/auth', () => ({
-    ...jest.requireActual('../../firebase/auth'),
-    githubOAuth: jest.fn(() => ({ /* mock properties and methods as needed */})),
-    googleOAuth: jest.fn(() => ({ /* mock properties and methods as needed */})),
-    azureOAuth: jest.fn(() => ({ /* mock properties and methods as needed */})),
-    popUpSignIn: jest.fn(() => Promise.resolve({user: {providerData: ['provider']}})),
-}));
-
 import React from 'react';
 import {fireEvent, render, waitFor} from '@testing-library/react';
+import { vi } from 'vitest';
 import SocialButtonList from './index';
-import {azureOAuth, githubOAuth, googleOAuth, popUpSignIn} from '../../firebase/auth';
 import {mockedNavigator} from '../../setupTests';
+
+// Mocks
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom');
+    return {
+        ...actual,
+        useNavigate: vi.fn(),
+    };
+});
+
+vi.mock('../../firebase/auth', async () => {
+    const actual = await vi.importActual('../../firebase/auth');
+    return {
+        ...actual,
+        githubOAuth: vi.fn(() => ({ /* mock properties and methods as needed */})),
+        googleOAuth: vi.fn(() => ({ /* mock properties and methods as needed */})),
+        azureOAuth: vi.fn(() => ({ /* mock properties and methods as needed */})),
+        popUpSignIn: vi.fn(() => Promise.resolve({user: {providerData: ['provider']}})),
+    };
+});
 
 describe('SocialButtonList Component', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     test('renders visible buttons correctly', () => {
@@ -33,9 +39,11 @@ describe('SocialButtonList Component', () => {
     });
 
     test('button click initiates authentication', async () => {
-        popUpSignIn.mockResolvedValueOnce({user: {providerData: ['provider']}});
+        const { popUpSignIn, googleOAuth } = await import('../../firebase/auth');
+        vi.mocked(popUpSignIn).mockResolvedValueOnce({user: {providerData: ['provider']}} as any);
+
         const {getByText} = render(<SocialButtonList currentUser={null}/>);
-        fireEvent.click(getByText('google'));
+        fireEvent.click(getByText(/google/i));
 
 		await waitFor(() => expect(popUpSignIn).toHaveBeenCalled());
 		await waitFor(() => expect(googleOAuth).toHaveBeenCalled());

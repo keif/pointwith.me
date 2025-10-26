@@ -2,39 +2,44 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import Login from './index';
-import store from 'store';
-import * as firebaseAuth from '@/firebase';
 
 // Mocks
-jest.mock('react-router-dom', () => ({
-	...jest.requireActual('react-router-dom'),
-	useParams: jest.fn(() => ({})),
-	useNavigate: jest.fn(() => jest.fn())
-}));
+vi.mock('react-router-dom', async () => {
+	const actual = await vi.importActual('react-router-dom');
+	return {
+		...actual,
+		useParams: vi.fn(() => ({})),
+		useNavigate: vi.fn(() => vi.fn())
+	};
+});
 
-jest.mock('store', () => ({
-	get: jest.fn(),
-	remove: jest.fn()
-}));
-jest.mock('@/firebase', () => ({
-	auth: {
-		auth: {
-			onAuthStateChanged: jest.fn()
-		},
-		githubOAuth: jest.fn(),
-		googleOAuth: jest.fn(),
-		azureOAuth: jest.fn()
-		// ... other auth methods
+vi.mock('store', () => ({
+	default: {
+		get: vi.fn(),
+		remove: vi.fn()
 	}
 }));
-jest.mock('@/containers/Layout', () => ({
-	__esModule: true,
-	default: ({ children }) => <div data-testid="layout">{children}</div>
+
+vi.mock('@/firebase', () => ({
+	auth: {
+		auth: {
+			onAuthStateChanged: vi.fn()
+		}
+	}
 }));
-jest.mock('../SocialButtonList', () => ({
-	__esModule: true,
+
+vi.mock('@/containers/Layout', () => ({
+	default: ({ children }: any) => <div data-testid="layout">{children}</div>
+}));
+
+vi.mock('../SocialButtonList', () => ({
 	default: () => <div data-testid="social-button-list"></div>
+}));
+
+vi.mock('../AnonymousLogin', () => ({
+	default: () => <div data-testid="anonymous-login"></div>
 }));
 
 describe('Login Component', () => {
@@ -48,9 +53,15 @@ describe('Login Component', () => {
 	});
 
 	test('navigates based on authentication state', async () => {
+		const { auth } = await import('@/firebase');
+		const store = (await import('store')).default;
+
 		const mockUser = { uid: '123' };
-		firebaseAuth.auth.auth.onAuthStateChanged.mockImplementationOnce(callback => callback(mockUser));
-		store.get.mockImplementationOnce(() => '/dashboard');
+		vi.mocked(auth.auth.onAuthStateChanged).mockImplementationOnce((callback: any) => {
+			callback(mockUser);
+			return vi.fn(); // Return unsubscribe function
+		});
+		vi.mocked(store.get).mockImplementationOnce(() => '/dashboard');
 
 		render(
 			<BrowserRouter>
@@ -59,10 +70,8 @@ describe('Login Component', () => {
 		);
 
 		// Verify navigation logic
-		// This requires additional setup depending on how you handle routing in your tests
 		await waitFor(() => {
 			expect(store.get).toHaveBeenCalledWith('entryPoint');
-			// Additional assertions for navigation
 		});
 	});
 

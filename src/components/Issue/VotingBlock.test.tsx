@@ -2,15 +2,22 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import VotingBlock from './VotingBlock'; // Assuming the component file is named VotingBlock.js
+import { vi } from 'vitest';
+import VotingBlock from './VotingBlock';
 
 // Mock the fibonacci function to return a predefined sequence for testing
-jest.mock('../../utils/fibonacci', () => jest.fn(() => [1, 2, 3, 5, 8, 13, 21, 34]));
+vi.mock('../../utils/fibonacci', () => ({
+	default: vi.fn(() => [1, 2, 3, 5, 8, 13, 21, 34])
+}));
 
 // Mock function for onClick
-const mockOnClick = jest.fn();
+const mockOnClick = vi.fn();
 
 describe('VotingBlock component', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
 	test('renders correctly', () => {
 		// Render the component
 		const { getByText } = render(
@@ -26,7 +33,6 @@ describe('VotingBlock component', () => {
 	});
 
 	test('handles click event to show selected card', () => {
-
 		// Render the component
 		const { getByText, getByTestId } = render(
 			<VotingBlock onClick={mockOnClick} isLocked={false} userVote={null} />
@@ -38,7 +44,9 @@ describe('VotingBlock component', () => {
 		// Check if the onClick function is called with the correct argument
 		expect(mockOnClick).toHaveBeenCalledWith(5);
 
-		// Check if the card with the selected value has the 'selected' class
-		expect(getByTestId('voteCards').childNodes[3]).toHaveClass('selected');
+		// Check if the card with the selected value has success (green) styling
+		const button = getByText('5');
+		expect(button.className).toContain('bg-success');
+		expect(button.className).toContain('scale-105');
 	});
 });

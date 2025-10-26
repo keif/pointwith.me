@@ -1,14 +1,15 @@
+import { vi } from 'vitest';
 import * as db from '@/firebase/db';
 import { remove as firebaseRemove } from 'firebase/database';
 import { createClient } from './pokerTables';
 
 // Mocks
-jest.mock('firebase/database', () => ({
-  remove: jest.fn(),
+vi.mock('firebase/database', () => ({
+  remove: vi.fn(),
 }));
 
-jest.mock('@/firebase/db', () => ({
-  pokerTable: jest.fn()
+vi.mock('@/firebase/db', () => ({
+  pokerTable: vi.fn()
 }));
 
 describe('Poker Tables API client', () => {
@@ -16,13 +17,13 @@ describe('Poker Tables API client', () => {
   const pokerTableId = 'testPokerTableId';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('remove function calls firebaseRemove with correct path', () => {
     // Mock the return value for pokerTable
     const mockPath = { path: 'test/path/to/table' };
-    db.pokerTable.mockReturnValue(mockPath);
+    vi.mocked(db.pokerTable).mockReturnValue(mockPath as any);
 
     const client = createClient(userId);
     client.remove(pokerTableId);

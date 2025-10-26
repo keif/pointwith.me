@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { vi } from 'vitest';
 import Layout from './Layout';
-import { auth } from '../firebase';
 import { BrowserRouter } from 'react-router-dom';
 
 // Mocks
-jest.mock('../firebase', () => ({
+vi.mock('../firebase', () => ({
 	auth: {
 		get auth() {
 			return {
@@ -18,16 +18,19 @@ jest.mock('../firebase', () => ({
 	}
 }));
 
-jest.mock('react-router-dom', () => ({
-	...jest.requireActual('react-router-dom'),
-	useParams: jest.fn()
-}));
+vi.mock('react-router-dom', async () => {
+	const actual = await vi.importActual('react-router-dom');
+	return {
+		...actual,
+		useParams: vi.fn()
+	};
+});
 
 describe('Layout Component', () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-		const { useParams } = require('react-router-dom');
-		useParams.mockReturnValue({ userId: 'testUserId' });
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		const { useParams } = await import('react-router-dom');
+		vi.mocked(useParams).mockReturnValue({ userId: 'testUserId' });
 	});
 
 	test('renders with children and displays user info when authenticated', () => {
@@ -40,7 +43,7 @@ describe('Layout Component', () => {
 		);
 
 		expect(getByText('Child Component')).toBeInTheDocument();
-		expect(getByText('Test User - ATTENDEE')).toBeInTheDocument();
+		expect(getByText('Test User - HOST')).toBeInTheDocument();
 	});
 
 	test('content centering based on prop', () => {

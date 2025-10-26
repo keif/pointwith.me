@@ -1,32 +1,35 @@
 import React from 'react';
 import {fireEvent, render} from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Controls from './Controls'; // Assuming the component file is named Controls.js
-import * as firebaseDatabase from 'firebase/database';
-import {useParams} from 'react-router-dom';
+import { vi } from 'vitest';
+import Controls from './Controls';
 
 // Mock the firebase functions
-jest.mock('firebase/database');
+vi.mock('firebase/database', () => ({
+    update: vi.fn()
+}));
 
-const mockPokerTableIssue = jest.fn();
-jest.mock('@/firebase', () => ({
+vi.mock('@/firebase', () => ({
     db: {
-        get pokerTableIssue() {
-            return mockPokerTableIssue;
-        }
+        pokerTableIssue: vi.fn()
     }
 }));
 
 // Mock useParams hook
-jest.mock('react-router-dom', () => ({
-    ...jest.requireActual('react-router-dom'),
-    useParams: jest.fn(),
-}));
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom');
+    return {
+        ...actual,
+        useParams: vi.fn()
+    };
+});
 
 describe('Controls component', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
+        vi.clearAllMocks();
         // Mock useParams values
-        useParams.mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
+        const { useParams } = await import('react-router-dom');
+        vi.mocked(useParams).mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
     });
 
     test('rendered correctly', () => {
@@ -41,38 +44,44 @@ describe('Controls component', () => {
     });
 
     describe('handles button clicks', () => {
-        test('to show votes', () => {
+        test('to show votes', async () => {
+            const { db } = await import('@/firebase');
+            const { update } = await import('firebase/database');
+
             // Mock the return value for pokerTableIssue
             const mockRef = {path: 'test/path'};
-            mockPokerTableIssue.mockReturnValue(mockRef);
+            vi.mocked(db.pokerTableIssue).mockReturnValue(mockRef as any);
 
             // Render the component
             const {getByText} = render(
-                <Controls isLocked={false} issue="testIssue" showVotes={false}/>
+                <Controls isLocked={false} issue="testIssue" showVotes={false} votes={[]} finalScore={null}/>
             );
 
             // Simulate a click event on the "Show Votes" button
             fireEvent.click(getByText('Show Votes'));
 
             // Check if the update function is called with the correct arguments
-            expect(firebaseDatabase.update).toHaveBeenCalledWith(mockRef, {showVotes: true});
+            expect(update).toHaveBeenCalledWith(mockRef, {showVotes: true});
         });
 
-        test('to lock voting', () => {
+        test('to lock voting', async () => {
+            const { db } = await import('@/firebase');
+            const { update } = await import('firebase/database');
+
             // Mock the return value for pokerTableIssue
             const mockRef = {path: 'test/path'};
-            mockPokerTableIssue.mockReturnValue(mockRef);
+            vi.mocked(db.pokerTableIssue).mockReturnValue(mockRef as any);
 
             // Render the component
             const {getByText} = render(
-                <Controls isLocked={false} issue="testIssue" showVotes={false}/>
+                <Controls isLocked={false} issue="testIssue" showVotes={false} votes={[]} finalScore={null}/>
             );
 
             // Simulate a click event on the "Lock Voting" button
             fireEvent.click(getByText('Lock Voting'));
 
             // Check if the update function is called with the correct arguments
-            expect(firebaseDatabase.update).toHaveBeenCalledWith(mockRef, {isLocked: true});
+            expect(update).toHaveBeenCalledWith(mockRef, {isLocked: true});
         });
     });
 });

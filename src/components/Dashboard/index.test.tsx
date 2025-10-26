@@ -1,51 +1,55 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { onValue, set } from 'firebase/database';
+import { vi } from 'vitest';
 import { Dashboard } from './index';
-import * as pokerTablesApi from '@/api/pokerTables';
 import { MemoryRouter } from 'react-router-dom';
 
 // Mock necessary modules and functions
-// Mock the firebase functions
-jest.mock('firebase/database');
-
-// mock layout component
-jest.mock('@/containers/Layout', () => ({
-	__esModule: true,
-	default: ({ children }: any) => <div data-testid="layout-test">{children}</div>,
+vi.mock('firebase/database', () => ({
+	onValue: vi.fn(),
+	set: vi.fn()
 }));
 
-jest.mock('@/firebase', () => ({
-	...jest.requireActual('@/firebase'),
+vi.mock('@/containers/Layout', () => ({
+	default: ({ children }: any) => <div data-testid="layout-test">{children}</div>
+}));
+
+vi.mock('@/firebase', () => ({
 	auth: {
 		get auth() {
 			return {
-				currentUser: { uid: 'testUserId' },
+				currentUser: { uid: 'testUserId', displayName: 'Test User' }
 			};
-		},
+		}
 	},
 	db: {
-		pokerTables: jest.fn((userId: string) => ({
-			path: `pokerTables/${userId}`,
+		pokerTables: vi.fn((userId: string) => ({
+			path: `pokerTables/${userId}`
 		})),
-		pokerTable: jest.fn((userId: string, tableId: string) => ({
-			path: `pokerTable/${userId}/${tableId}`,
-		})),
-	},
+		pokerTable: vi.fn((userId: string, tableId: string) => ({
+			path: `pokerTable/${userId}/${tableId}`
+		}))
+	}
 }));
-jest.mock('@/api/pokerTables', () => ({
-	createClient: jest.fn(() => ({
-		remove: jest.fn(),
-	})),
+
+vi.mock('@/api/pokerTables', () => ({
+	createClient: vi.fn(() => ({
+		remove: vi.fn()
+	}))
 }));
-jest.mock('date-fns', () => ({
-	format: jest.fn((date, formatStr) => {
-		// Simple mock that returns a formatted string
+
+vi.mock('date-fns', () => ({
+	format: vi.fn((date: any, formatStr: any) => {
 		return new Date(date).toLocaleString();
-	}),
+	})
 }));
-jest.mock('shortid', () => ({generate: jest.fn(() => 'testTableId')}));
+
+vi.mock('shortid', () => ({
+	default: {
+		generate: vi.fn(() => 'testTableId')
+	}
+}));
 
 describe('Dashboard Page', () => {
 	test('renders Dashboard component', async () => {
@@ -57,12 +61,15 @@ describe('Dashboard Page', () => {
 	});
 
 	test('deletes a poker table when the delete button is clicked', async () => {
+		const { onValue, set } = await import('firebase/database');
+		const pokerTablesApi = await import('@/api/pokerTables');
+
 		// Mock necessary functions
-		const remove = jest.fn();
-		onValue.mockImplementationOnce((ref, callback) => {
+		const remove = vi.fn();
+		vi.mocked(onValue).mockImplementationOnce((ref: any, callback: any) => {
 			const snapshot = {
-				exists: jest.fn(() => true),
-				val: jest.fn(() => ({
+				exists: vi.fn(() => true),
+				val: vi.fn(() => ({
 					'randomuserstring': {
 						tableName: 'Test Table',
 						created: 'Fri Nov 17 2023 22:31:08 GMT-0500 (Eastern Standard Time)'
@@ -70,9 +77,10 @@ describe('Dashboard Page', () => {
 				}))
 			};
 			callback(snapshot);
+			return vi.fn(); // Return unsubscribe
 		});
-		set.mockImplementationOnce(() => Promise.resolve());
-		pokerTablesApi.createClient.mockImplementation(() => ({ remove }));
+		vi.mocked(set).mockImplementationOnce(() => Promise.resolve());
+		vi.mocked(pokerTablesApi.createClient).mockImplementation(() => ({ remove }) as any);
 
 		// Render the component inside memory router
 		const {getByTestId, getByText, queryByText} = await render(

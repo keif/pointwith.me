@@ -1,63 +1,78 @@
 import React from 'react';
 import {fireEvent, render, waitFor} from '@testing-library/react';
-import {BrowserRouter, useParams} from 'react-router-dom';
+import {BrowserRouter} from 'react-router-dom';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import {PokerTable} from './index';
-import * as firebase from '@/firebase';
-import * as issues from '@/api/issues';
-import {onValue} from 'firebase/database';
-import * as pokerTablesApi from '@/api/pokerTables';
 
 // Mocks
-// Mock necessary modules and functions
-// Mock the firebase functions
-jest.mock('firebase/database');
-
-jest.mock('react-router-dom', () => ({
-	...jest.requireActual('react-router-dom'),
-	useParams: jest.fn()
+vi.mock('firebase/database', () => ({
+	getDatabase: vi.fn(() => ({})),
+	onValue: vi.fn(),
+	set: vi.fn(),
+	update: vi.fn(),
+	remove: vi.fn(),
+	onDisconnect: vi.fn(() => ({
+		remove: vi.fn()
+	})),
+	child: vi.fn()
 }));
-const mockPokerTable = jest.fn();
-const mockPokerTableIssuesRoot = jest.fn();
 
-jest.mock('@/firebase', () => ({
+vi.mock('react-router-dom', async () => {
+	const actual = await vi.importActual('react-router-dom');
+	return {
+		...actual,
+		useParams: vi.fn()
+	};
+});
+
+vi.mock('@/firebase', () => ({
 	auth: {
 		get auth() {
 			return {
-				currentUser: {uid: 'testUserId'}
+				currentUser: {uid: 'testUserId', displayName: 'Test User'}
 			};
 		}
 	},
 	db: {
-		get pokerTable() {
-			return mockPokerTable;
-		},
-		get pokerTableIssuesRoot() {
-			return mockPokerTableIssuesRoot;
-		}
+		pokerTable: vi.fn(),
+		pokerTableIssuesRoot: vi.fn(),
+		pokerTableParticipants: vi.fn(),
+		pokerTableParticipant: vi.fn()
 	}
 }));
-jest.mock('@/api/issues');
-jest.mock('@/containers/Layout', () => ({
-	__esModule: true,
-	default: ({children}) => <div data-testid="layout">{children}</div>
+
+vi.mock('@/api/issues', () => ({
+	createClient: vi.fn(() => ({
+		remove: vi.fn()
+	}))
 }));
-jest.mock('../Issue', () => ({
-	__esModule: true,
+
+vi.mock('@/containers/Layout', () => ({
+	default: ({children}: any) => <div data-testid="layout">{children}</div>
+}));
+
+vi.mock('../Issue', () => ({
 	default: () => <div data-testid="issue-component"></div>
 }));
-jest.mock('./IssueCreator', () => ({
-	__esModule: true,
+
+vi.mock('./IssueCreator', () => ({
 	default: () => <div data-testid="issue-creator-component"></div>
 }));
-jest.mock('./ModalActions', () => ({
-	__esModule: true,
+
+vi.mock('./ModalActions', () => ({
 	default: () => <div data-testid="modal-actions-component"></div>
 }));
 
+vi.mock('./RoleSelectionModal', () => ({
+	default: () => <div data-testid="role-selection-modal"></div>
+}));
+
 describe('PokerTable Component', () => {
-	beforeEach(() => {
-		useParams.mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		const { useParams } = await import('react-router-dom');
+		vi.mocked(useParams).mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
 	});
 
 	test('as a voter, cannot remove issues', () => {

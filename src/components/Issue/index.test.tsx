@@ -1,42 +1,50 @@
 import React from 'react';
 import {render, waitFor} from '@testing-library/react';
 import '@testing-library/jest-dom';
-import {useParams} from 'react-router-dom';
-import {onValue} from 'firebase/database';
-import Issue from './index'; // Assuming the component file is named index.js
+import { vi } from 'vitest';
+import Issue from './index';
 
 // Mock the firebase functions
-jest.mock('firebase/database');
-
-// Mock useParams hook
-jest.mock('react-router-dom', () => ({
-	...jest.requireActual('react-router-dom'),
-	useParams: jest.fn(),
+vi.mock('firebase/database', () => ({
+	onValue: vi.fn(),
+	update: vi.fn(),
+	child: vi.fn()
 }));
 
+// Mock useParams hook
+vi.mock('react-router-dom', async () => {
+	const actual = await vi.importActual('react-router-dom');
+	return {
+		...actual,
+		useParams: vi.fn()
+	};
+});
+
 // Mock firebase
-jest.mock('@/firebase', () => ({
+vi.mock('@/firebase', () => ({
 	auth: {
 		get auth() {
 			return {
-				currentUser: {uid: 'testUserId'}
+				currentUser: {uid: 'testUserId', displayName: 'Test User'}
 			};
 		}
 	},
 	db: {
-		pokerTableIssue: jest.fn((userId, tableId, issue) => ({
-			path: `pokerTableIssue/${userId}/${tableId}/${issue}`,
+		pokerTableIssue: vi.fn((userId: any, tableId: any, issue: any) => ({
+			path: `pokerTableIssue/${userId}/${tableId}/${issue}`
 		})),
-		votesRoot: jest.fn((issue) => ({
-			path: `votesRoot/${issue}`,
-		})),
-	},
+		votesRoot: vi.fn((issue: any) => ({
+			path: `votesRoot/${issue}`
+		}))
+	}
 }));
 
 describe('Issue Component', () => {
-	beforeEach(() => {
+	beforeEach(async () => {
+		vi.clearAllMocks();
 		// Mock useParams values
-		useParams.mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
+		const { useParams } = await import('react-router-dom');
+		vi.mocked(useParams).mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
 	});
 
 	test('renders Issue component and displays loading message', () => {
@@ -48,13 +56,16 @@ describe('Issue Component', () => {
 	});
 
 	test('renders Issue component with Controls when isTableOwner is true', async () => {
+		const { onValue } = await import('firebase/database');
+
 		// Mock onValue function for issueRef
-		onValue.mockImplementationOnce((ref, callback) => {
+		vi.mocked(onValue).mockImplementationOnce((ref: any, callback: any) => {
 			const snapshot = {
-				exists: jest.fn(() => true),
-				val: jest.fn(() => ({title: 'Test Issue', isLocked: false, showVotes: false}))
+				exists: vi.fn(() => true),
+				val: vi.fn(() => ({title: 'Test Issue', isLocked: false, showVotes: false}))
 			};
 			callback(snapshot);
+			return vi.fn(); // Return unsubscribe
 		});
 
 		// Render the component
@@ -66,17 +77,20 @@ describe('Issue Component', () => {
 		});
 
 		// Check if Controls component is rendered when isTableOwner is true
-		expect(getByText('Show Votes')).toBeInTheDocument(); // Assuming this text is present in your Controls component
+		expect(getByText('Show Votes')).toBeInTheDocument();
 	});
 
 	test('renders VotingBlock component when issueState.isLocked is false', async () => {
+		const { onValue } = await import('firebase/database');
+
 		// Mock onValue function for issueRef
-		onValue.mockImplementationOnce((ref, callback) => {
+		vi.mocked(onValue).mockImplementationOnce((ref: any, callback: any) => {
 			const snapshot = {
-				exists: jest.fn(() => true),
-				val: jest.fn(() => ({title: 'Test Issue', isLocked: false, showVotes: false}))
+				exists: vi.fn(() => true),
+				val: vi.fn(() => ({title: 'Test Issue', isLocked: false, showVotes: false}))
 			};
 			callback(snapshot);
+			return vi.fn(); // Return unsubscribe
 		});
 
 		// Render the component

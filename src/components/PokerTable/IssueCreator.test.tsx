@@ -1,18 +1,23 @@
 import React from 'react';
 import {fireEvent, render} from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import IssueCreator from './IssueCreator';
-import * as reactRouterDom from 'react-router-dom';
 import {mockedNavigator} from '../../setupTests';
 
-// Mocks
-jest.mock('react-router-dom', () => ({
-	...jest.requireActual('react-router-dom'),
-	useParams: jest.fn(),
-	useNavigate: jest.fn()
-}));
+const mockNavigate = vi.fn();
 
-jest.mock('@/firebase', () => ({
+// Mocks
+vi.mock('react-router-dom', async () => {
+	const actual = await vi.importActual('react-router-dom');
+	return {
+		...actual,
+		useParams: vi.fn(),
+		useNavigate: () => mockNavigate
+	};
+});
+
+vi.mock('@/firebase', () => ({
 	auth: {
 		get auth() {
 			return {
@@ -24,57 +29,68 @@ jest.mock('@/firebase', () => ({
 		}
 	},
 	db: {
-		pokerTable: jest.fn()
+		pokerTable: vi.fn()
 	}
 }));
-jest.mock('./IssueNameForm', () => ({handleIssueSubmit}) => (
-	<div data-testid="issue-name-form" onClick={handleIssueSubmit}>
-		IssueNameForm
-	</div>
-));
-jest.mock('firebase/database', () => ({
-	set: jest.fn(),
-	update: jest.fn()
+
+vi.mock('./IssueNameForm', () => ({
+	default: ({handleIssueSubmit}: any) => (
+		<div data-testid="issue-name-form" onClick={handleIssueSubmit}>
+			IssueNameForm
+		</div>
+	)
 }));
 
+vi.mock('firebase/database', () => ({
+	set: vi.fn(),
+	update: vi.fn()
+}));
+
+// Default props for tests
+const defaultProps = {
+	onClick: vi.fn(),
+	tableName: 'Test Table',
+	ownerName: 'Test Owner',
+	created: new Date().toISOString(),
+	lastEdited: null,
+	lastEditedByName: null
+};
+
 describe('IssueCreator Component', () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-		const {useNavigate} = require('react-router-dom');
-		useNavigate.mockReturnValue(mockedNavigator);
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		mockNavigate.mockClear();
 	});
 
-	test('renders correctly for a non-owner user', () => {
-		const {useParams} = require('react-router-dom');
-		useParams.mockReturnValue({userId: 'differentUserId', tableId: 'testTableId'});
+	test('renders correctly for a non-owner user', async () => {
+		const {useParams} = await import('react-router-dom');
+		vi.mocked(useParams).mockReturnValue({userId: 'differentUserId', tableId: 'testTableId'});
 
-		const {getByText, queryByTestId} = render(<IssueCreator tableName="Test Table"/>);
+		const {getByText, queryByTestId} = render(<IssueCreator {...defaultProps} />);
 
 		expect(getByText('Test Table')).toBeInTheDocument();
 		expect(getByText('Return to Lobby')).toBeInTheDocument();
 		expect(queryByTestId('issue-name-form')).not.toBeInTheDocument();
 	});
 
-	test('renders correctly for the owner user', () => {
-		const {useParams} = require('react-router-dom');
-		useParams.mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
+	test('renders correctly for the owner user', async () => {
+		const {useParams} = await import('react-router-dom');
+		vi.mocked(useParams).mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
 
-		const {getByText, getByTestId} = render(<IssueCreator tableName="Test Table" onClick={() => {
-		}}/>);
+		const {getByText, getByTestId} = render(<IssueCreator {...defaultProps} />);
 
 		expect(getByText('Test Table')).toBeInTheDocument();
 		expect(getByText('Return to Lobby')).toBeInTheDocument();
 		expect(getByTestId('issue-name-form')).toBeInTheDocument();
 	});
 
-	test('navigates to the dashboard on click', () => {
-		const {useParams} = require('react-router-dom');
-		useParams.mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
+	test('navigates to the dashboard on click', async () => {
+		const {useParams} = await import('react-router-dom');
+		vi.mocked(useParams).mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
 
-		const {getByText} = render(<IssueCreator tableName="Test Table" onClick={() => {
-		}}/>);
+		const {getByText} = render(<IssueCreator {...defaultProps} />);
 		fireEvent.click(getByText('Return to Lobby'));
 
-		expect(mockedNavigator).toHaveBeenCalledWith('/dashboard');
+		expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
 	});
 });
