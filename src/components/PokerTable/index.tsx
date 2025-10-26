@@ -29,7 +29,7 @@ const PokerTable = () => {
 		tableId
 	);
 	const [state, setState] = React.useState({
-		pokerTable: {},
+		pokerTable: {} as any,
 		issuesClient: null,
 		issues: [],
 		currentIssue: false,
@@ -234,7 +234,7 @@ const PokerTable = () => {
 			}
 		});
 
-		return nextIssue ? nextIssue.id : false;
+		return nextIssue ? (nextIssue as any).id : false;
 	};
 
 	const handleCloseIssue = async () => {

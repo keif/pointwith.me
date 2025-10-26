@@ -7,7 +7,6 @@ import Issue from './index'; // Assuming the component file is named index.js
 
 // Mock the firebase functions
 jest.mock('firebase/database');
-jest.mock('../../firebase');
 
 // Mock useParams hook
 jest.mock('react-router-dom', () => ({
@@ -15,15 +14,15 @@ jest.mock('react-router-dom', () => ({
 	useParams: jest.fn(),
 }));
 
-// Mock necessary modules and functions
-jest.mock('firebase/auth', () => ({
-	...jest.requireActual('firebase/auth'),
-	getAuth: jest.fn(() => ({
-		currentUser: {uid: 'testUserId'},
-	})),
-}));
-jest.mock('../../firebase', () => ({
-	...jest.requireActual('../../firebase'),
+// Mock firebase
+jest.mock('@/firebase', () => ({
+	auth: {
+		get auth() {
+			return {
+				currentUser: {uid: 'testUserId'}
+			};
+		}
+	},
 	db: {
 		pokerTableIssue: jest.fn((userId, tableId, issue) => ({
 			path: `pokerTableIssue/${userId}/${tableId}/${issue}`,

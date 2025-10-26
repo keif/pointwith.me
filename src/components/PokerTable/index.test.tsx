@@ -3,10 +3,10 @@ import {fireEvent, render, waitFor} from '@testing-library/react';
 import {BrowserRouter, useParams} from 'react-router-dom';
 import '@testing-library/jest-dom';
 import {PokerTable} from './index';
-import * as firebase from '../../firebase';
-import * as issues from '../../api/issues';
+import * as firebase from '@/firebase';
+import * as issues from '@/api/issues';
 import {onValue} from 'firebase/database';
-import * as pokerTablesApi from '../../api/pokerTables';
+import * as pokerTablesApi from '@/api/pokerTables';
 
 // Mocks
 // Mock necessary modules and functions
@@ -20,7 +20,7 @@ jest.mock('react-router-dom', () => ({
 const mockPokerTable = jest.fn();
 const mockPokerTableIssuesRoot = jest.fn();
 
-jest.mock('../../firebase', () => ({
+jest.mock('@/firebase', () => ({
 	auth: {
 		get auth() {
 			return {
@@ -37,15 +37,23 @@ jest.mock('../../firebase', () => ({
 		}
 	}
 }));
-jest.mock('../../api/issues', () => ({
-	createClient: jest.fn(() => ({
-		remove: jest.fn()
-	}))
+jest.mock('@/api/issues');
+jest.mock('@/containers/Layout', () => ({
+	__esModule: true,
+	default: ({children}) => <div data-testid="layout">{children}</div>
 }));
-jest.mock('../../containers/Layout', () => ({children}) => <div data-testid="layout">{children}</div>);
-jest.mock('../Issue', () => () => <div data-testid="issue-component"></div>);
-jest.mock('./IssueCreator', () => () => <div data-testid="issue-creator-component"></div>);
-jest.mock('./ModalActions', () => () => <div data-testid="modal-actions-component"></div>);
+jest.mock('../Issue', () => ({
+	__esModule: true,
+	default: () => <div data-testid="issue-component"></div>
+}));
+jest.mock('./IssueCreator', () => ({
+	__esModule: true,
+	default: () => <div data-testid="issue-creator-component"></div>
+}));
+jest.mock('./ModalActions', () => ({
+	__esModule: true,
+	default: () => <div data-testid="modal-actions-component"></div>
+}));
 
 describe('PokerTable Component', () => {
 	beforeEach(() => {

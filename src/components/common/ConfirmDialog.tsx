@@ -1,22 +1,34 @@
-import React, {useState} from 'react';
-import {AlertTriangle, X} from 'lucide-react';
+import React, { useState } from 'react';
+import type { FC } from 'react';
+import { AlertTriangle, X } from 'lucide-react';
+
+interface ConfirmDialogProps {
+    /** Whether the dialog is visible */
+    isOpen: boolean;
+    /** Dialog title */
+    title?: string;
+    /** Confirmation message */
+    message: string;
+    /** Text for confirm button */
+    confirmText?: string;
+    /** Text for cancel button */
+    cancelText?: string;
+    /** CSS classes for confirm button */
+    confirmButtonClass?: string;
+    /** Callback when user confirms */
+    onConfirm: () => void;
+    /** Callback when user cancels */
+    onCancel: () => void;
+    /** Whether to show "don't ask again" checkbox */
+    showDontAskAgain?: boolean;
+    /** localStorage key for "don't ask again" preference */
+    dontAskAgainKey?: string;
+}
 
 /**
  * Reusable confirmation dialog component
- *
- * @param {Object} props
- * @param {boolean} props.isOpen - Whether the dialog is visible
- * @param {string} props.title - Dialog title
- * @param {string} props.message - Confirmation message
- * @param {string} props.confirmText - Text for confirm button (default: "Delete")
- * @param {string} props.cancelText - Text for cancel button (default: "Cancel")
- * @param {string} props.confirmButtonClass - CSS classes for confirm button (default: danger styling)
- * @param {Function} props.onConfirm - Callback when user confirms
- * @param {Function} props.onCancel - Callback when user cancels
- * @param {boolean} props.showDontAskAgain - Whether to show "don't ask again" checkbox (default: true)
- * @param {string} props.dontAskAgainKey - localStorage key for "don't ask again" preference
  */
-const ConfirmDialog = ({
+const ConfirmDialog: FC<ConfirmDialogProps> = ({
     isOpen,
     title = 'Confirm Action',
     message,
@@ -28,18 +40,18 @@ const ConfirmDialog = ({
     showDontAskAgain = true,
     dontAskAgainKey,
 }) => {
-    const [dontAskAgain, setDontAskAgain] = useState(false);
+    const [dontAskAgain, setDontAskAgain] = useState<boolean>(false);
 
     if (!isOpen) return null;
 
-    const handleConfirm = () => {
+    const handleConfirm = (): void => {
         if (dontAskAgain && dontAskAgainKey) {
             localStorage.setItem(dontAskAgainKey, 'true');
         }
         onConfirm();
     };
 
-    const handleCancel = () => {
+    const handleCancel = (): void => {
         setDontAskAgain(false);
         onCancel();
     };

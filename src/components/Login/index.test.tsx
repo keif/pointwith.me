@@ -4,14 +4,20 @@ import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import Login from './index';
 import store from 'store';
-import * as firebaseAuth from '../../firebase';
+import * as firebaseAuth from '@/firebase';
 
 // Mocks
+jest.mock('react-router-dom', () => ({
+	...jest.requireActual('react-router-dom'),
+	useParams: jest.fn(() => ({})),
+	useNavigate: jest.fn(() => jest.fn())
+}));
+
 jest.mock('store', () => ({
 	get: jest.fn(),
 	remove: jest.fn()
 }));
-jest.mock('../../firebase', () => ({
+jest.mock('@/firebase', () => ({
 	auth: {
 		auth: {
 			onAuthStateChanged: jest.fn()
@@ -22,8 +28,14 @@ jest.mock('../../firebase', () => ({
 		// ... other auth methods
 	}
 }));
-jest.mock('../../containers/Layout', () => ({ children }) => <div data-testid="layout">{children}</div>);
-jest.mock('../SocialButtonList', () => () => <div data-testid="social-button-list"></div>);
+jest.mock('@/containers/Layout', () => ({
+	__esModule: true,
+	default: ({ children }) => <div data-testid="layout">{children}</div>
+}));
+jest.mock('../SocialButtonList', () => ({
+	__esModule: true,
+	default: () => <div data-testid="social-button-list"></div>
+}));
 
 describe('Login Component', () => {
 	test('renders Login component', () => {

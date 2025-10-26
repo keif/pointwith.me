@@ -1,42 +1,40 @@
 import React from 'react';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import {onValue, set} from 'firebase/database';
-import {Dashboard} from './index';
-import * as pokerTablesApi from '../../api/pokerTables';
-import {MemoryRouter} from 'react-router-dom';
+import { onValue, set } from 'firebase/database';
+import { Dashboard } from './index';
+import * as pokerTablesApi from '@/api/pokerTables';
+import { MemoryRouter } from 'react-router-dom';
 
 // Mock necessary modules and functions
 // Mock the firebase functions
 jest.mock('firebase/database');
-jest.mock('../../firebase');
-jest.mock('../../api/pokerTables');
 
 // mock layout component
-jest.mock('../../containers/Layout', () => ({
+jest.mock('@/containers/Layout', () => ({
 	__esModule: true,
-	default: ({children}) => <div data-testid="layout-test">{children}</div>,
+	default: ({ children }: any) => <div data-testid="layout-test">{children}</div>,
 }));
 
-jest.mock('../../firebase', () => ({
-	...jest.requireActual('../../firebase'),
+jest.mock('@/firebase', () => ({
+	...jest.requireActual('@/firebase'),
 	auth: {
 		get auth() {
 			return {
-				currentUser: {uid: 'testUserId'},
+				currentUser: { uid: 'testUserId' },
 			};
 		},
 	},
 	db: {
-		pokerTables: jest.fn((userId) => ({
+		pokerTables: jest.fn((userId: string) => ({
 			path: `pokerTables/${userId}`,
 		})),
-		pokerTable: jest.fn((userId, tableId) => ({
+		pokerTable: jest.fn((userId: string, tableId: string) => ({
 			path: `pokerTable/${userId}/${tableId}`,
 		})),
 	},
 }));
-jest.mock(pokerTablesApi, () => ({
+jest.mock('@/api/pokerTables', () => ({
 	createClient: jest.fn(() => ({
 		remove: jest.fn(),
 	})),

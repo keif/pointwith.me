@@ -1,5 +1,5 @@
-const fibonacci = (input) => {
-    let sequence = [0, 1];
+const fibonacci = (input: number): number[] => {
+    const sequence: number[] = [0, 1];
     let i = 2;
 
     while (i <= input) {
@@ -8,7 +8,6 @@ const fibonacci = (input) => {
     }
 
     return sequence;
-
 };
 
 export default fibonacci;

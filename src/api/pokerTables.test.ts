@@ -1,4 +1,4 @@
-import * as db from '../firebase/db';
+import * as db from '@/firebase/db';
 import { remove as firebaseRemove } from 'firebase/database';
 import { createClient } from './pokerTables';
 
@@ -7,7 +7,7 @@ jest.mock('firebase/database', () => ({
   remove: jest.fn(),
 }));
 
-jest.mock('../firebase/db', () => ({
+jest.mock('@/firebase/db', () => ({
   pokerTable: jest.fn()
 }));
 

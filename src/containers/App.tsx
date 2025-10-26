@@ -1,9 +1,8 @@
-import React, {Suspense, lazy} from 'react';
-import {BrowserRouter, createBrowserRouter, Route, RouterProvider, Routes} from 'react-router-dom';
+import React, {lazy, Suspense} from 'react';
+import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import {Toaster} from 'react-hot-toast';
 
 import Login from '../components/Login';
-import withAuthentication from '../containers/withAuthentication';
 import '../style.css';
 
 // Lazy load route components
@@ -27,32 +26,32 @@ const router = createBrowserRouter([
     {
         path: "/about",
         element: (
-            <Suspense fallback={<LoadingFallback />}>
-                <About />
+            <Suspense fallback={<LoadingFallback/>}>
+                <About/>
             </Suspense>
         )
     },
     {
         path: "/dashboard",
         element: (
-            <Suspense fallback={<LoadingFallback />}>
-                <Dashboard />
+            <Suspense fallback={<LoadingFallback/>}>
+                <Dashboard/>
             </Suspense>
         )
     },
     {
         path: "/table/:userId/:tableId",
         element: (
-            <Suspense fallback={<LoadingFallback />}>
-                <PokerTable />
+            <Suspense fallback={<LoadingFallback/>}>
+                <PokerTable/>
             </Suspense>
         )
     },
     {
         path: "/settings",
         element: (
-            <Suspense fallback={<LoadingFallback />}>
-                <Settings />
+            <Suspense fallback={<LoadingFallback/>}>
+                <Settings/>
             </Suspense>
         )
     },
@@ -61,7 +60,7 @@ const router = createBrowserRouter([
 const App = () => {
     return (
         <>
-            <RouterProvider router={router} />
+            <RouterProvider router={router}/>
             <Toaster
                 position="top-center"
                 reverseOrder={false}

@@ -12,7 +12,7 @@ jest.mock('react-router-dom', () => ({
 	useNavigate: jest.fn()
 }));
 
-jest.mock('../../firebase', () => ({
+jest.mock('@/firebase', () => ({
 	auth: {
 		get auth() {
 			return {

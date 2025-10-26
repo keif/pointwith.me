@@ -1,9 +1,9 @@
 /**
  * Check if a number is prime
- * @param {number} num - The number to check
- * @returns {boolean} - True if prime, false otherwise
+ * @param num - The number to check
+ * @returns True if prime, false otherwise
  */
-export const isPrime = (num) => {
+export const isPrime = (num: number): boolean => {
     if (num <= 1) return false;
     if (num === 2) return true;
     if (num % 2 === 0) return false;
@@ -19,10 +19,10 @@ export const isPrime = (num) => {
  * - Decimal <= 0.2: round down (e.g., 4.2 -> 4)
  * - Decimal >= 0.3: round up (e.g., 4.3 -> 5)
  * - Then find next prime >= rounded value
- * @param {number} num - The number to round
- * @returns {number} - The next prime number
+ * @param num - The number to round
+ * @returns The next prime number
  */
-export const roundUpToPrime = (num) => {
+export const roundUpToPrime = (num: number): number => {
     // Special case: very low values round to 0
     if (num < 0.3) return 0;
 
@@ -53,11 +53,11 @@ export const nearestPrime = roundUpToPrime;
 
 /**
  * Generate list of prime numbers up to a maximum value
- * @param {number} max - The maximum value
- * @returns {number[]} - Array of prime numbers
+ * @param max - The maximum value
+ * @returns Array of prime numbers
  */
-export const generatePrimes = (max) => {
-    const primes = [];
+export const generatePrimes = (max: number): number[] => {
+    const primes: number[] = [];
     for (let i = 2; i <= max; i++) {
         if (isPrime(i)) {
             primes.push(i);
@@ -69,4 +69,4 @@ export const generatePrimes = (max) => {
 /**
  * Common planning poker prime numbers (up to 89)
  */
-export const planningPokerPrimes = [0, 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89];
+export const planningPokerPrimes: number[] = [0, 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89];
