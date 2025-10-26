@@ -19,6 +19,7 @@ import ModalActions from './ModalActions';
 import RoleSelectionModal from './RoleSelectionModal';
 import ConfirmDialog from '../common/ConfirmDialog';
 import * as dbRefs from '../../firebase/db';
+import {useInlineEdit} from '../../hooks/useInlineEdit';
 
 
 const PokerTable = () => {
@@ -38,8 +39,8 @@ const PokerTable = () => {
 	});
 	const [userRole, setUserRole] = React.useState(null);
 	const [showRoleModal, setShowRoleModal] = React.useState(true);
-	const [editingIssueId, setEditingIssueId] = useState(null);
-	const [editedIssueTitle, setEditedIssueTitle] = useState('');
+	const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
+	const [editingIssueTitle, setEditingIssueTitle] = useState('');
 	const [deleteConfirmation, setDeleteConfirmation] = useState({
 		isOpen: false,
 		issueId: null,
@@ -244,21 +245,21 @@ const PokerTable = () => {
 			});
 	};
 
-	const handleStartEditIssue = (issueId, currentTitle) => (e) => {
+	const handleStartEditIssue = (issueId: string, currentTitle: string) => (e: React.MouseEvent) => {
 		e.stopPropagation(); // Prevent triggering handleViewIssue
 		setEditingIssueId(issueId);
-		setEditedIssueTitle(currentTitle);
+		setEditingIssueTitle(currentTitle);
 	};
 
-	const handleCancelEditIssue = (e) => {
+	const handleCancelEditIssue = (e: React.MouseEvent | React.KeyboardEvent) => {
 		e.stopPropagation();
 		setEditingIssueId(null);
-		setEditedIssueTitle('');
+		setEditingIssueTitle('');
 	};
 
-	const handleSaveEditIssue = (issueId) => (e) => {
+	const handleSaveEditIssue = (issueId: string) => async (e: React.MouseEvent | React.KeyboardEvent) => {
 		e.stopPropagation();
-		const trimmedTitle = editedIssueTitle.trim();
+		const trimmedTitle = editingIssueTitle.trim();
 
 		if (!trimmedTitle) {
 			toast.error('Issue title cannot be empty');
@@ -277,22 +278,23 @@ const PokerTable = () => {
 			lastEditedByName: currentUser.displayName || 'Anonymous',
 		};
 
-		toast.promise(
-			update(issueRef, updateData),
-			{
-				loading: 'Updating issue title...',
-				success: 'Issue title updated',
-				error: 'Failed to update issue title',
-			}
-		).then(() => {
+		try {
+			await toast.promise(
+				update(issueRef, updateData),
+				{
+					loading: 'Updating issue title...',
+					success: 'Issue title updated',
+					error: 'Failed to update issue title',
+				}
+			);
 			setEditingIssueId(null);
-			setEditedIssueTitle('');
-		}).catch(() => {
+			setEditingIssueTitle('');
+		} catch (error) {
 			// Error handled by toast
-		});
+		}
 	};
 
-	const handleIssueKeyDown = (issueId) => (e) => {
+	const handleIssueKeyDown = (issueId: string) => (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === 'Enter') {
 			handleSaveEditIssue(issueId)(e);
 		} else if (e.key === 'Escape') {
@@ -408,8 +410,8 @@ const PokerTable = () => {
 									<div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
 										<input
 											type="text"
-											value={editedIssueTitle}
-											onChange={(e) => setEditedIssueTitle(e.target.value)}
+											value={editingIssueTitle}
+											onChange={(e) => setEditingIssueTitle(e.target.value)}
 											onKeyDown={handleIssueKeyDown(s.id)}
 											className="flex-1 text-lg font-semibold border-2 border-primary rounded px-2 py-1"
 											autoFocus

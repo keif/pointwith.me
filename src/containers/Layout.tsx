@@ -1,15 +1,14 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, {ReactNode} from 'react';
 import {User, Twitter, Github, Settings, ArrowLeft} from 'lucide-react';
 import {auth} from '../firebase';
 import {useParams, Link} from 'react-router-dom';
 
-const propTypes = {
-	children: PropTypes.node.isRequired,
-	contentCenter: PropTypes.bool,
-};
+interface LayoutProps {
+	children: ReactNode;
+	contentCenter?: boolean;
+}
 
-const Layout = ({children, contentCenter = false}) => {
+const Layout = ({children, contentCenter = false}: LayoutProps) => {
 	const {userId} = useParams();
 	const currentUser = auth.auth.currentUser;
 	const isHost = userId === currentUser?.uid;
@@ -107,7 +106,5 @@ const Layout = ({children, contentCenter = false}) => {
 		</div>
 	);
 };
-
-Layout.propTypes = propTypes;
 
 export default Layout;

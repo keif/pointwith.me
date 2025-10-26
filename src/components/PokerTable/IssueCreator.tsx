@@ -1,72 +1,52 @@
 import {Home, Edit2, Check, X} from 'lucide-react';
 import IssueNameForm from './IssueNameForm';
-import React, {useState} from 'react';
+import React from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {auth, db} from '../../firebase';
-import shortid from 'shortid';
-import {set, update} from 'firebase/database';
+import {update} from 'firebase/database';
 import {format} from 'date-fns';
 import toast from 'react-hot-toast';
 import {formatEditHistory} from '../../utils/timeAgo';
+import {useInlineEdit} from '../../hooks/useInlineEdit';
 
 const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastEditedByName}) => {
     const navigate = useNavigate();
     const {userId, tableId} = useParams();
     const currentUser = auth.auth.currentUser;
-    const [isEditing, setIsEditing] = useState(false);
-    const [editedName, setEditedName] = useState(tableName);
     const isOwner = userId === currentUser.uid;
 
-    const handleStartEdit = () => {
-        setEditedName(tableName);
-        setIsEditing(true);
-    };
+    const {
+        isEditing,
+        editedValue: editedName,
+        setEditedValue: setEditedName,
+        handleStartEdit,
+        handleCancelEdit,
+        handleSaveEdit,
+        handleKeyDown
+    } = useInlineEdit({
+        initialValue: tableName,
+        onSave: async (trimmedName) => {
+            const pokerTableRef = db.pokerTable(userId, tableId);
+            const updateData = {
+                tableName: trimmedName,
+                lastEdited: new Date().toISOString(),
+                lastEditedBy: currentUser.uid,
+                lastEditedByName: currentUser.displayName || 'Anonymous',
+            };
 
-    const handleCancelEdit = () => {
-        setEditedName(tableName);
-        setIsEditing(false);
-    };
-
-    const handleSaveEdit = () => {
-        const trimmedName = editedName.trim();
-        if (!trimmedName) {
-            toast.error('Table name cannot be empty');
-            return;
-        }
-        if (trimmedName.length > 100) {
-            toast.error('Table name must be 100 characters or less');
-            return;
-        }
-
-        const pokerTableRef = db.pokerTable(userId, tableId);
-        const updateData = {
-            tableName: trimmedName,
-            lastEdited: new Date().toISOString(),
-            lastEditedBy: currentUser.uid,
-            lastEditedByName: currentUser.displayName || 'Anonymous',
-        };
-
-        toast.promise(
-            update(pokerTableRef, updateData),
-            {
-                loading: 'Updating table name...',
-                success: 'Table name updated',
-                error: 'Failed to update table name',
-            }
-        ).then(() => {
-            setIsEditing(false);
-        }).catch(() => {
-            setEditedName(tableName);
-        });
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            handleSaveEdit();
-        } else if (e.key === 'Escape') {
-            handleCancelEdit();
-        }
-    };
+            await toast.promise(
+                update(pokerTableRef, updateData),
+                {
+                    loading: 'Updating table name...',
+                    success: 'Table name updated',
+                    error: 'Failed to update table name',
+                }
+            );
+        },
+        maxLength: 100,
+        emptyErrorMessage: 'Table name cannot be empty',
+        maxLengthErrorMessage: 'Table name must be 100 characters or less'
+    });
 
     if (userId !== currentUser.uid) {
         return (

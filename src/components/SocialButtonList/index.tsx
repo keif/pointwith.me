@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
 import {
     azureOAuth,
@@ -10,14 +9,10 @@ import {
     twitterOAuth
 } from '../../firebase/auth';
 
-const propTypes = {
-    currentUser: PropTypes.object,
-    currentProviders: PropTypes.func
-};
-
-const defaultProps = {
-    currentProviders: null
-};
+interface SocialButtonListProps {
+    currentUser?: any;
+    currentProviders?: ((providerData: any[]) => void) | null;
+}
 
 const buttonList = {
     github: {
@@ -46,7 +41,7 @@ const buttonList = {
     }
 };
 
-const SocialButtonList = ({currentUser, currentProviders}) => {
+const SocialButtonList = ({currentUser, currentProviders = null}: SocialButtonListProps) => {
     const navigate = useNavigate();
 
     const authHandler = authData => {
@@ -99,8 +94,5 @@ const SocialButtonList = ({currentUser, currentProviders}) => {
         </div>
     );
 };
-
-SocialButtonList.propTypes = propTypes;
-SocialButtonList.defaultProps = defaultProps;
 
 export default SocialButtonList;

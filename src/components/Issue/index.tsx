@@ -8,6 +8,7 @@ import {child, onValue, update} from 'firebase/database';
 import VotingBlock from './VotingBlock';
 import Controls from './Controls';
 import {formatEditHistory} from '../../utils/timeAgo';
+import {useInlineEdit} from '../../hooks/useInlineEdit';
 
 const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => {
 	const {userId, tableId} = useParams();
@@ -29,8 +30,6 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 		userVote: null,
 		votes: [],
 	});
-	const [isEditingTitle, setIsEditingTitle] = useState(false);
-	const [editedTitle, setEditedTitle] = useState('');
 	const issueRef = db.pokerTableIssue(
 		userId,
 		tableId,
@@ -39,6 +38,38 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 	const votesRef = db.votesRoot(
 		issue
 	);
+
+	const {
+		isEditing: isEditingTitle,
+		editedValue: editedTitle,
+		setEditedValue: setEditedTitle,
+		handleStartEdit: handleStartEditTitle,
+		handleCancelEdit: handleCancelEditTitle,
+		handleSaveEdit: handleSaveEditTitle,
+		handleKeyDown: handleTitleKeyDown
+	} = useInlineEdit({
+		initialValue: issueState.title,
+		onSave: async (trimmedTitle) => {
+			const updateData = {
+				title: trimmedTitle,
+				lastEdited: new Date().toISOString(),
+				lastEditedBy: currentUser.uid,
+				lastEditedByName: currentUser.displayName || 'Anonymous',
+			};
+
+			await toast.promise(
+				update(issueRef, updateData),
+				{
+					loading: 'Updating issue title...',
+					success: 'Issue title updated',
+					error: 'Failed to update issue title',
+				}
+			);
+		},
+		maxLength: 200,
+		emptyErrorMessage: 'Issue title cannot be empty',
+		maxLengthErrorMessage: 'Issue title must be 200 characters or less'
+	});
 
 	useEffect(() => {
 		return loadIssue();
@@ -154,55 +185,6 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 			});
 	};
 
-	const handleStartEditTitle = () => {
-		setEditedTitle(issueState.title);
-		setIsEditingTitle(true);
-	};
-
-	const handleCancelEditTitle = () => {
-		setEditedTitle(issueState.title);
-		setIsEditingTitle(false);
-	};
-
-	const handleSaveEditTitle = () => {
-		const trimmedTitle = editedTitle.trim();
-		if (!trimmedTitle) {
-			toast.error('Issue title cannot be empty');
-			return;
-		}
-		if (trimmedTitle.length > 200) {
-			toast.error('Issue title must be 200 characters or less');
-			return;
-		}
-
-		const updateData = {
-			title: trimmedTitle,
-			lastEdited: new Date().toISOString(),
-			lastEditedBy: currentUser.uid,
-			lastEditedByName: currentUser.displayName || 'Anonymous',
-		};
-
-		toast.promise(
-			update(issueRef, updateData),
-			{
-				loading: 'Updating issue title...',
-				success: 'Issue title updated',
-				error: 'Failed to update issue title',
-			}
-		).then(() => {
-			setIsEditingTitle(false);
-		}).catch(() => {
-			setEditedTitle(issueState.title);
-		});
-	};
-
-	const handleTitleKeyDown = (e) => {
-		if (e.key === 'Enter') {
-			handleSaveEditTitle();
-		} else if (e.key === 'Escape') {
-			handleCancelEditTitle();
-		}
-	};
 
 	//suggestion() {
 	//let suggestion = '??';

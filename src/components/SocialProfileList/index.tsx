@@ -1,5 +1,4 @@
 import React, { PureComponent, Fragment } from 'react';
-import PropTypes from 'prop-types';
 import { Button, Item } from 'semantic-ui-react'
 
 interface SocialProfileListProps {
@@ -9,11 +8,6 @@ interface SocialProfileListProps {
 }
 
 class SocialProfileList extends PureComponent<SocialProfileListProps> {
-  static propTypes = {
-    auth: PropTypes.func.isRequired,
-    providerData: PropTypes.arrayOf(PropTypes.object).isRequired,
-    unlinkedProvider: PropTypes.func.isRequired
-  };
 
   /**
    * Unlinks a provider from the current user account

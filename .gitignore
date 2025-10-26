@@ -78,3 +78,6 @@ build/
 
 # notes
 _notes
+
+# Claude Code settings
+.claude/

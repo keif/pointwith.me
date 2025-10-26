@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 import { signInAnonymouslyWithName } from '../../firebase/auth';
 
-const propTypes = {
-  onSuccess: PropTypes.func,
-};
+interface AnonymousLoginProps {
+  onSuccess?: ((user: any) => void) | null;
+}
 
-const defaultProps = {
-  onSuccess: null,
-};
-
-const AnonymousLogin = ({ onSuccess }) => {
+const AnonymousLogin = ({ onSuccess = null }: AnonymousLoginProps) => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -76,8 +71,5 @@ const AnonymousLogin = ({ onSuccess }) => {
     </form>
   );
 };
-
-AnonymousLogin.propTypes = propTypes;
-AnonymousLogin.defaultProps = defaultProps;
 
 export default AnonymousLogin;
