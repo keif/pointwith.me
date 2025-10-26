@@ -3,7 +3,7 @@ import {fireEvent, render, waitFor} from '@testing-library/react';
 import {BrowserRouter, useParams} from 'react-router-dom';
 import '@testing-library/jest-dom';
 import {PokerTable} from './index';
-import {auth, db} from '../../firebase';
+import * as firebase from '../../firebase';
 import * as issues from '../../api/issues';
 import {onValue} from 'firebase/database';
 import * as pokerTablesApi from '../../api/pokerTables';
@@ -12,27 +12,30 @@ import * as pokerTablesApi from '../../api/pokerTables';
 // Mock necessary modules and functions
 // Mock the firebase functions
 jest.mock('firebase/database');
+
 jest.mock('react-router-dom', () => ({
 	...jest.requireActual('react-router-dom'),
 	useParams: jest.fn()
 }));
+const mockPokerTable = jest.fn();
+const mockPokerTableIssuesRoot = jest.fn();
+
 jest.mock('../../firebase', () => ({
-	...jest.requireActual('../../firebase'),
 	auth: {
 		get auth() {
 			return {
-				currentUser: {uid: 'testUserId'},
+				currentUser: {uid: 'testUserId'}
 			};
-		},
+		}
 	},
 	db: {
-		pokerTable: jest.fn((userId) => ({
-			path: `pokerTables/${userId}`,
-		})),
-		pokerTableIssuesRoot: jest.fn((userId, tid) => ({
-			path: `pokerTables/${userId}/${tid}/issues`,
-		})),
-	},
+		get pokerTable() {
+			return mockPokerTable;
+		},
+		get pokerTableIssuesRoot() {
+			return mockPokerTableIssuesRoot;
+		}
+	}
 }));
 jest.mock('../../api/issues', () => ({
 	createClient: jest.fn(() => ({
@@ -45,15 +48,8 @@ jest.mock('./IssueCreator', () => () => <div data-testid="issue-creator-componen
 jest.mock('./ModalActions', () => () => <div data-testid="modal-actions-component"></div>);
 
 describe('PokerTable Component', () => {
-	const originalUser = auth.auth.currentUser;
-
 	beforeEach(() => {
 		useParams.mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
-	});
-
-	afterEach(() => {
-		// Reset currentUser to original after each test
-		auth.auth.currentUser = originalUser;
 	});
 
 	test('as a voter, cannot remove issues', () => {
@@ -70,9 +66,9 @@ describe('PokerTable Component', () => {
 	test('as an owner, can delete an issue', async () => {
 		const remove = jest.fn();
 		// Mock firebase database responses
-		db.pokerTable.mockImplementation(() => ({ /* ... */}));
-		db.pokerTableIssuesRoot.mockImplementation(() => ({ /* ... */}));
-		issues.createClient.mockImplementation(() => ({ remove }));
+		mockPokerTable.mockReturnValue({ path: 'pokerTables/testUserId' });
+		mockPokerTableIssuesRoot.mockReturnValue({ path: 'pokerTables/testUserId/testTableId/issues' });
+		issues.createClient.mockReturnValue({ remove });
 		onValue.mockImplementation((ref, callback) => {
 			const snapshot = {
 				exists: jest.fn(() => true),

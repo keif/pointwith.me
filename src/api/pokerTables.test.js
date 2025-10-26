@@ -6,8 +6,9 @@ import { createClient } from './pokerTables';
 jest.mock('firebase/database', () => ({
   remove: jest.fn(),
 }));
+
 jest.mock('../firebase/db', () => ({
-  pokerTable: jest.fn(),
+  pokerTable: jest.fn()
 }));
 
 describe('Poker Tables API client', () => {
@@ -19,6 +20,10 @@ describe('Poker Tables API client', () => {
   });
 
   test('remove function calls firebaseRemove with correct path', () => {
+    // Mock the return value for pokerTable
+    const mockPath = { path: 'test/path/to/table' };
+    db.pokerTable.mockReturnValue(mockPath);
+
     const client = createClient(userId);
     client.remove(pokerTableId);
 
@@ -26,7 +31,6 @@ describe('Poker Tables API client', () => {
     expect(db.pokerTable).toHaveBeenCalledWith(userId, pokerTableId);
 
     // Ensure firebaseRemove is called with the path returned from pokerTable
-    const path = db.pokerTable.mock.results[0].value;
-    expect(firebaseRemove).toHaveBeenCalledWith(path);
+    expect(firebaseRemove).toHaveBeenCalledWith(mockPath);
   });
 });
