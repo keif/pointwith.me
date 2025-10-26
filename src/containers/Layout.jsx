@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {User, Twitter, Github} from 'lucide-react';
+import {User, Twitter, Github, Settings, ArrowLeft} from 'lucide-react';
 import {auth} from '../firebase';
-import {useParams} from 'react-router-dom';
+import {useParams, Link} from 'react-router-dom';
 
 const propTypes = {
 	children: PropTypes.node.isRequired,
@@ -40,6 +40,14 @@ const Layout = ({children, contentCenter = false}) => {
 									<User size={16} />
 									<span className="text-sm">{userDisplay}</span>
 								</div>
+								<Link
+									to="/settings"
+									className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+									title="Settings"
+								>
+									<Settings size={16} />
+									<span className="hidden sm:inline">Settings</span>
+								</Link>
 								<button
 									onClick={() => auth.auth.signOut()}
 									className="btn btn-danger text-sm"
@@ -50,6 +58,19 @@ const Layout = ({children, contentCenter = false}) => {
 						)}
 					</div>
 				</div>
+				{window.location.pathname === '/settings' && (
+					<div className="bg-gray-700 text-white border-t border-gray-600">
+						<div className="flex items-center gap-3 py-2 container-centered">
+							<Link
+								to="/dashboard"
+								className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+							>
+								<ArrowLeft size={18} />
+								Back to Dashboard
+							</Link>
+						</div>
+					</div>
+				)}
 			</nav>
 
 			{/* Main Content */}

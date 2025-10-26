@@ -33,6 +33,124 @@ Track when and who edits table names and issue titles.
 
 ## Under Consideration
 
+### Jira Integration: Sprint & Issue Sync
+**Priority:** High
+**Requested:** 2025-10-25
+**Status:** Under Consideration
+
+Allow Point With Me to connect with Jira Cloud so users can import their current sprint and automatically populate pointing tables with active issues.
+
+**Motivation:**
+- Reduce manual entry of tickets during pointing sessions
+- Keep sprint boards synchronized between Jira and Point With Me
+- Improve team visibility on story point progress and status
+- Streamline sprint planning workflow
+
+**Core Requirements:**
+1. Authenticate securely with Jira Cloud
+2. Fetch all available sprints for the selected board
+3. Populate a table of issues from the current or selected sprint
+4. Default filter: status = "To Do"
+5. Support customizable filters (e.g., "In Progress," "Blocked," or custom labels)
+6. Display issue fields:
+   - Key (e.g., PS-1234)
+   - Summary
+   - Assignee
+   - Status
+   - Story Points
+   - Sprint Name
+   - Updated Date
+7. Provide refresh and pagination handling
+
+**Technical Implementation:**
+
+*API Integration:*
+- Use Jira REST API v3 (`/rest/api/3/search`)
+- Agile API for sprints (`/rest/agile/1.0/board/{boardId}/sprint`)
+- JQL query example:
+  ```jql
+  project = "PBM" AND sprint = "Current Sprint" AND status = "To Do"
+  ```
+
+*Authentication Options:*
+- **Option 1 (Simple):** Basic Auth with API token for single shared Jira
+- **Option 2 (Multi-user):** OAuth 2.0 (3LO) via Atlassian Developer Console
+- Secure credentials via Firebase environment variables or Cloud Functions backend
+- Use Axios or Fetch with encoded `Authorization: Basic` header
+
+*Data Handling:*
+- Cache fetched results in Firebase for 15 minutes
+- Refresh automatically or via manual "Sync with Jira" button
+- Store Jira issue mapping to maintain sync state
+
+**UI/UX Features:**
+- Dropdown for selecting sprint (from available sprints)
+- Table view with dynamic filter dropdown for status
+- "Sync with Jira" button to manually trigger re-fetch
+- Visual indicators for sync status (last synced timestamp)
+- Loading states during API calls
+- Error handling for authentication failures
+
+**Data Structure:**
+```javascript
+{
+  jiraIntegration: {
+    [tableId]: {
+      connected: true,
+      boardId: "123",
+      lastSynced: "timestamp",
+      selectedSprint: "Sprint 42",
+      filters: {
+        status: ["To Do", "In Progress"]
+      },
+      issues: {
+        [issueKey]: {
+          key: "PS-1234",
+          summary: "Issue title",
+          assignee: "John Doe",
+          status: "To Do",
+          storyPoints: 5,
+          sprintName: "Sprint 42",
+          updated: "timestamp",
+          jiraUrl: "https://..."
+        }
+      }
+    }
+  }
+}
+```
+
+**Security Considerations:**
+- Never store Jira credentials in client-side code
+- Use Firebase Cloud Functions as proxy for API calls
+- Implement rate limiting to avoid Jira API throttling
+- Validate all user input for JQL queries
+- Use HTTPS only for all API communications
+
+**Future Enhancements:**
+- Push story point updates from Point With Me back to Jira (bi-directional sync)
+- Auto-detect when a sprint changes in Jira and prompt users to update
+- Team-level analytics comparing Jira story points vs Point With Me estimates
+- Support for multiple Jira instances per team
+- Webhook integration for real-time updates
+- Support for Jira Server (in addition to Cloud)
+- Custom field mapping configuration
+
+**Effort:** Large
+**Value:** Very High (major workflow improvement)
+
+**Implementation Phases:**
+1. **Phase 1 (MVP):** Read-only integration with basic auth, manual sync
+2. **Phase 2:** OAuth 2.0, auto-refresh, better filtering
+3. **Phase 3:** Bi-directional sync, webhooks, analytics
+
+**Dependencies:**
+- Firebase Cloud Functions (for secure API proxy)
+- Jira Cloud instance with API access
+- Atlassian Developer Console app registration (for OAuth)
+
+---
+
 ### Granular Edit Permissions
 **Priority:** Low
 **Requested:** Session 2025-10-24
@@ -306,6 +424,81 @@ Further optimize for mobile devices.
 ---
 
 ## Team Collaboration Features
+
+### Retro Board
+**Priority:** Medium
+**Requested:** 2025-10-24
+
+Add a retrospective board feature for team reflection and continuous improvement.
+
+**Sections:**
+- **Start** - What should we start doing?
+- **Stop** - What should we stop doing?
+- **Continue** - What should we keep doing?
+- **Action Items** - Concrete next steps from the retro
+
+**Key Features:**
+- Create retro boards similar to poker tables
+- Real-time collaboration (multiple users adding cards simultaneously)
+- Anonymous or attributed cards (user preference)
+- Voting/liking on cards to prioritize
+- Group similar cards together
+- Convert discussions into action items
+- Export retro results
+
+**Implementation Considerations:**
+- Reuse existing table/room infrastructure
+- Card creation similar to issue creation
+- Drag-and-drop for grouping cards
+- Action item tracking with owner assignment
+- Timer for time-boxed activities
+- Facilitator role (like table owner)
+
+**Data Structure:**
+```javascript
+{
+  retroBoards: {
+    [ownerId]: {
+      [boardId]: {
+        boardName: "Sprint 42 Retro",
+        created: "timestamp",
+        owner: "userId",
+        sections: {
+          start: {
+            [cardId]: {
+              text: "Daily standups",
+              author: "userId" | "anonymous",
+              votes: ["userId1", "userId2"],
+              created: "timestamp"
+            }
+          },
+          stop: { /* similar */ },
+          continue: { /* similar */ },
+          actionItems: {
+            [itemId]: {
+              text: "Set up CI/CD pipeline",
+              owner: "userId",
+              dueDate: "timestamp",
+              status: "pending" | "in-progress" | "done",
+              created: "timestamp"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Effort:** Large
+**Value:** High (adds major new capability beyond planning poker)
+
+**Phases:**
+1. **MVP** - Basic card creation in start/stop/continue sections
+2. **Enhanced** - Voting, grouping, anonymous mode
+3. **Advanced** - Action item tracking, export, timer features
+
+---
 
 ### Real-Time Cursors
 **Priority:** Very Low

@@ -10,6 +10,7 @@ import '../style.css';
 const Dashboard = lazy(() => import('../components/Dashboard'));
 const PokerTable = lazy(() => import('../components/PokerTable'));
 const About = lazy(() => import('../components/About'));
+const Settings = lazy(() => import('../components/Settings'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -44,6 +45,14 @@ const router = createBrowserRouter([
         element: (
             <Suspense fallback={<LoadingFallback />}>
                 <PokerTable />
+            </Suspense>
+        )
+    },
+    {
+        path: "/settings",
+        element: (
+            <Suspense fallback={<LoadingFallback />}>
+                <Settings />
             </Suspense>
         )
     },
