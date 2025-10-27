@@ -3,6 +3,7 @@ import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import {Toaster} from 'react-hot-toast';
 
 import Login from '@/components/Login';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import '@/style.css';
 
 // Lazy load route components
@@ -24,14 +25,19 @@ const LoadingFallback = () => (
 );
 
 const router = createBrowserRouter([
-    {path: "/", Component: Login},
+    {
+        path: "/",
+        Component: Login,
+        errorElement: <ErrorBoundary />
+    },
     {
         path: "/about",
         element: (
             <Suspense fallback={<LoadingFallback/>}>
                 <About/>
             </Suspense>
-        )
+        ),
+        errorElement: <ErrorBoundary />
     },
     {
         path: "/dashboard",
@@ -39,7 +45,8 @@ const router = createBrowserRouter([
             <Suspense fallback={<LoadingFallback/>}>
                 <Dashboard/>
             </Suspense>
-        )
+        ),
+        errorElement: <ErrorBoundary />
     },
     {
         path: "/table/:userId/:tableId",
@@ -47,7 +54,8 @@ const router = createBrowserRouter([
             <Suspense fallback={<LoadingFallback/>}>
                 <PokerTable/>
             </Suspense>
-        )
+        ),
+        errorElement: <ErrorBoundary />
     },
     {
         path: "/settings",
@@ -55,7 +63,8 @@ const router = createBrowserRouter([
             <Suspense fallback={<LoadingFallback/>}>
                 <Settings/>
             </Suspense>
-        )
+        ),
+        errorElement: <ErrorBoundary />
     },
     {
         path: "/terms",
@@ -63,7 +72,8 @@ const router = createBrowserRouter([
             <Suspense fallback={<LoadingFallback/>}>
                 <Terms/>
             </Suspense>
-        )
+        ),
+        errorElement: <ErrorBoundary />
     },
     {
         path: "/privacy",
@@ -71,7 +81,8 @@ const router = createBrowserRouter([
             <Suspense fallback={<LoadingFallback/>}>
                 <Privacy/>
             </Suspense>
-        )
+        ),
+        errorElement: <ErrorBoundary />
     },
 ])
 
