@@ -18,16 +18,31 @@ The Jira integration allows you to:
 
 ## Setup Instructions
 
-### Step 1: Create an Atlassian OAuth 2.0 App
+**IMPORTANT:** Atlassian OAuth 2.0 apps only support a single callback URL. You must create **separate apps** for development and production environments.
+
+### Step 1: Create Two Atlassian OAuth 2.0 Apps
+
+You'll need to create two separate OAuth apps:
+
+#### App 1: Development
 
 1. Go to [Atlassian Developer Console](https://developer.atlassian.com/console)
 2. Click **Create** → **OAuth 2.0 integration**
-3. Give your app a name (e.g., "PointWith.Me")
+3. Give your app a name: **"PointPal (Development)"**
 4. Click **Create**
 
-### Step 2: Configure OAuth Settings
+#### App 2: Production
 
-1. In your app settings, click **Permissions**
+1. In the same console, create another app
+2. Click **Create** → **OAuth 2.0 integration**
+3. Give your app a name: **"PointPal"** or **"PointPal (Production)"**
+4. Click **Create**
+
+### Step 2: Configure OAuth Settings for Both Apps
+
+**For BOTH apps**, configure the following:
+
+1. In app settings, click **Permissions**
 2. Add **Jira API** and configure these scopes:
    - `read:jira-work` - Read Jira project and issue data
    - `write:jira-work` - Update Jira issues
@@ -35,24 +50,24 @@ The Jira integration allows you to:
    - `offline_access` - Get refresh tokens for long-term access
 
 3. Click **Settings** in the left sidebar
-4. Under **Authorization**, add a callback URL:
-   - Development: `http://localhost:3000/settings/jira/callback`
-   - Production: `https://yourapp.com/settings/jira/callback`
+4. Under **Authorization**, add the callback URL:
+   - **Development app**: `http://localhost:8888/settings/jira/callback`
+   - **Production app**: `https://pointpal.app/settings/jira/callback`
 
-5. Save your **Client ID** and **Client Secret**
+5. Save the **Client ID** and **Client Secret** for each app
 
-### Step 3: Configure Environment Variables
+### Step 3: Configure Local Environment Variables
 
-1. Copy `.env.example` to `.env.local`:
+1. Create a `.env` file in your project root (or copy from `.env.example`):
    ```bash
-   cp .env.example .env.local
+   cp .env.example .env
    ```
 
-2. Add your Jira OAuth credentials to `.env.local`:
+2. Add your **DEVELOPMENT** Jira OAuth credentials to `.env`:
    ```bash
-   VITE_JIRA_CLIENT_ID=your_client_id_here
-   VITE_JIRA_CLIENT_SECRET=your_client_secret_here
-   VITE_JIRA_REDIRECT_URI=http://localhost:3000/settings/jira/callback
+   VITE_JIRA_CLIENT_ID=your_dev_client_id_here
+   VITE_JIRA_CLIENT_SECRET=your_dev_client_secret_here
+   VITE_JIRA_REDIRECT_URI=http://localhost:8888/settings/jira/callback
    ```
 
 3. Restart your development server:
@@ -60,7 +75,26 @@ The Jira integration allows you to:
    pnpm dev
    ```
 
-### Step 4: Connect Your Jira Account
+### Step 4: Configure Production Environment Variables (Netlify)
+
+1. Go to your [Netlify Dashboard](https://app.netlify.com/)
+2. Select your site (pointpal.app)
+3. Navigate to: **Site configuration** → **Environment variables**
+4. Add the following variables using your **PRODUCTION** app credentials:
+
+   | Key | Value |
+   |-----|-------|
+   | `VITE_JIRA_CLIENT_ID` | Your production app's Client ID |
+   | `VITE_JIRA_CLIENT_SECRET` | Your production app's Client Secret |
+   | `VITE_JIRA_REDIRECT_URI` | `https://pointpal.app/settings/jira/callback` |
+
+5. **Deploy your site** for the changes to take effect:
+   - Option A: Go to **Deploys** → **Trigger deploy** → **Deploy site**
+   - Option B: Push a new commit to trigger automatic deployment
+
+> **Note:** Environment variable changes require a new deployment to take effect. Simply saving the variables is not enough.
+
+### Step 5: Connect Your Jira Account
 
 1. Go to **Settings** in the app
 2. Find the **Jira Integration** section
