@@ -1,1 +1,7 @@
+# Netlify Redirects Configuration
+
+# Redirect www to apex domain
+https://www.pointpal.app/* https://pointpal.app/:splat 301!
+
+# SPA fallback - serve index.html for all routes (React Router)
 /*    /index.html   200
