@@ -31,6 +31,13 @@ const makeJiraRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
+  let requestBody = undefined;
+
+  if (options.body) {
+    // If body is a string, parse it; otherwise use as-is
+    requestBody = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+  }
+
   const response = await fetch('/.netlify/functions/jira-api-proxy', {
     method: 'POST',
     headers: {
@@ -41,7 +48,7 @@ const makeJiraRequest = async <T>(
       accessToken,
       endpoint,
       method: options.method || 'GET',
-      body: options.body ? JSON.parse(options.body as string) : undefined,
+      body: requestBody,
     }),
   });
 
@@ -91,16 +98,19 @@ export const fetchJiraIssues = async (
     total: number;
   }
 
-  const params = new URLSearchParams({
-    jql,
-    maxResults: maxResults.toString(),
-    fields: 'summary,description,status,assignee,priority,issuetype,project',
-  });
-
+  // Use the new /rest/api/3/search/jql endpoint (POST request)
   const response = await makeJiraRequest<SearchResponse>(
     cloudId,
     accessToken,
-    `/rest/api/3/search?${params.toString()}`
+    `/rest/api/3/search/jql`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        jql,
+        maxResults,
+        fields: ['summary', 'description', 'status', 'assignee', 'priority', 'issuetype', 'project'],
+      }),
+    }
   );
 
   return response.issues.map(issue => ({

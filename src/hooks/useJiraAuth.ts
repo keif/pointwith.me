@@ -21,6 +21,7 @@ interface UseJiraAuthReturn {
   disconnect: () => Promise<void>;
   refreshConfig: () => Promise<void>;
   updateConfig: (updates: Partial<JiraConfig>) => Promise<void>;
+  getValidConfig: () => Promise<JiraConfig | null>;
 }
 
 /**
@@ -170,6 +171,49 @@ export const useJiraAuth = (): UseJiraAuthReturn => {
     }
   }, [currentUser, config, getConfigRef]);
 
+  /**
+   * Get a valid config, refreshing token if necessary
+   * This ensures you always have a fresh, non-expired token
+   */
+  const getValidConfig = useCallback(async (): Promise<JiraConfig | null> => {
+    if (!currentUser) {
+      return null;
+    }
+
+    try {
+      const configRef = getConfigRef();
+      const snapshot = await get(configRef);
+
+      if (!snapshot.exists()) {
+        return null;
+      }
+
+      const data = snapshot.val() as JiraConfig;
+
+      // Check if token needs refresh
+      if (jiraAuth.isTokenExpired(data.expiresAt)) {
+        console.log('Token expired, refreshing before API call...');
+        const tokens = await jiraAuth.refreshAccessToken(data.refreshToken);
+        const updatedConfig: JiraConfig = {
+          ...data,
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt: jiraAuth.calculateExpirationTimestamp(tokens.expires_in),
+        };
+
+        // Save refreshed tokens
+        await set(configRef, updatedConfig);
+        setConfig(updatedConfig);
+        return updatedConfig;
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Error getting valid config:', err);
+      return null;
+    }
+  }, [currentUser, getConfigRef]);
+
   return {
     isConnected: config !== null && !jiraAuth.isTokenExpired(config.expiresAt),
     isLoading,
@@ -179,6 +223,7 @@ export const useJiraAuth = (): UseJiraAuthReturn => {
     disconnect,
     refreshConfig,
     updateConfig,
+    getValidConfig,
   };
 };
 

@@ -1,10 +1,11 @@
 // Theirs
 import React, {useEffect, useState} from 'react';
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {format} from 'date-fns';
-import {X} from 'lucide-react';
+import {X, Download} from 'lucide-react';
 import {onValue, set} from 'firebase/database';
 import shortid from 'shortid';
+import toast from 'react-hot-toast';
 
 // Ours
 import {auth, db} from '@/firebase';
@@ -13,6 +14,9 @@ import Layout from '@/containers/Layout';
 import withAuthentication from '@/containers/withAuthentication';
 import PokerTableNameForm from './PokerTableNameForm';
 import ConfirmDialog from '../common/ConfirmDialog';
+import JiraImportModal from './JiraImportModal';
+import { useJiraAuth } from '@/hooks/useJiraAuth';
+import type { JiraIssue } from '@/types/jira';
 
 interface PokerTableData {
 	id: string;
@@ -23,9 +27,12 @@ interface PokerTableData {
 }
 
 const Dashboard = () => {
+	const navigate = useNavigate();
 	const currentUser = auth.auth.currentUser;
 	const pokerTablesClient = currentUser ? pokerTablesApi.createClient(currentUser.uid) : null;
+	const { isConnected } = useJiraAuth();
 	const [pokerTables, setPokerTables] = useState<PokerTableData[]>([]);
+	const [isJiraImportOpen, setIsJiraImportOpen] = useState(false);
 	const [deleteConfirmation, setDeleteConfirmation] = useState<{
 		isOpen: boolean;
 		tableId: string | null;
@@ -100,6 +107,57 @@ const Dashboard = () => {
 		setDeleteConfirmation({ isOpen: false, tableId: null, tableName: '' });
 	};
 
+	const handleImportFromJira = (issues: JiraIssue[]) => {
+		if (!currentUser || issues.length === 0) return;
+
+		// Create a new table with the first issue's project name or generic name
+		const tableName = issues[0].projectName
+			? `${issues[0].projectName} Issues`
+			: 'Jira Import';
+
+		const tableId = shortid.generate();
+		const tableRef = db.pokerTable(currentUser.uid, tableId);
+
+		// Prepare table data
+		const tableData = {
+			created: new Date().toISOString(),
+			tableName,
+			ownerId: currentUser.uid,
+			ownerName: currentUser.displayName || 'Anonymous',
+		};
+
+		// Prepare issues data
+		const issuesData: Record<string, any> = {};
+		issues.forEach((jiraIssue) => {
+			const issueId = shortid.generate();
+			issuesData[issueId] = {
+				title: `${jiraIssue.key}: ${jiraIssue.summary}`,
+				created: new Date().toISOString(),
+				isLocked: false,
+				showVotes: false,
+				finalScore: jiraIssue.storyPoints || null,
+				jiraKey: jiraIssue.key,
+				jiraId: jiraIssue.id,
+				jiraUrl: jiraIssue.jiraUrl,
+			};
+		});
+
+		// Create table with issues
+		set(tableRef, {
+			...tableData,
+			issues: issuesData,
+		})
+			.then(() => {
+				toast.success(`Created table with ${issues.length} ${issues.length === 1 ? 'issue' : 'issues'}`);
+				// Navigate to the new table
+				navigate(`/table/${currentUser.uid}/${tableId}`);
+			})
+			.catch((error) => {
+				console.error('Error creating table:', error);
+				toast.error('Failed to create table');
+			});
+	};
+
 	const loadPokerTables = () => {
 		if (!currentUser) return;
 
@@ -130,6 +188,19 @@ const Dashboard = () => {
 				{/* Create Table Form */}
 				<div className="card">
 					<PokerTableNameForm handlePokerTableSubmit={createPokerTable}/>
+
+					{/* Import from Jira Button */}
+					{isConnected && (
+						<div className="mt-4 pt-4 border-t border-gray-200">
+							<button
+								onClick={() => setIsJiraImportOpen(true)}
+								className="btn btn-secondary flex items-center gap-2"
+							>
+								<Download size={16} />
+								Import from Jira
+							</button>
+						</div>
+					)}
 				</div>
 
 				{/* Tables List */}
@@ -184,6 +255,13 @@ const Dashboard = () => {
 				onCancel={handleCancelDeleteTable}
 				showDontAskAgain={true}
 				dontAskAgainKey="skipDeleteTableConfirmation"
+			/>
+
+			{/* Jira Import Modal */}
+			<JiraImportModal
+				isOpen={isJiraImportOpen}
+				onClose={() => setIsJiraImportOpen(false)}
+				onImport={handleImportFromJira}
 			/>
 		</Layout>
 	);

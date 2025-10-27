@@ -86,6 +86,13 @@ export const handler: Handler = async (event) => {
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('Jira API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        data
+      });
+
       return {
         statusCode: response.status,
         headers,

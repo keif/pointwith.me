@@ -89,6 +89,15 @@
               "lastEditedByName": {
                 ".validate": "newData.isString() && newData.val().length <= 100"
               },
+              "jiraKey": {
+                ".validate": "newData.isString() && newData.val().length > 0"
+              },
+              "jiraId": {
+                ".validate": "newData.isString() && newData.val().length > 0"
+              },
+              "jiraUrl": {
+                ".validate": "newData.isString() && newData.val().length > 0"
+              },
               "$other": {
                 ".validate": false
               }
