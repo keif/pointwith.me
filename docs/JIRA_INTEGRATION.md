@@ -66,9 +66,11 @@ You'll need to create two separate OAuth apps:
 2. Add your **DEVELOPMENT** Jira OAuth credentials to `.env`:
    ```bash
    VITE_JIRA_CLIENT_ID=your_dev_client_id_here
-   VITE_JIRA_CLIENT_SECRET=your_dev_client_secret_here
+   JIRA_CLIENT_SECRET=your_dev_client_secret_here
    VITE_JIRA_REDIRECT_URI=http://localhost:8888/settings/jira/callback
    ```
+
+   **Note:** `JIRA_CLIENT_SECRET` has no `VITE_` prefix - this keeps it server-side only.
 
 3. Restart your development server:
    ```bash
@@ -85,7 +87,7 @@ You'll need to create two separate OAuth apps:
    | Key | Value |
    |-----|-------|
    | `VITE_JIRA_CLIENT_ID` | Your production app's Client ID |
-   | `VITE_JIRA_CLIENT_SECRET` | Your production app's Client Secret |
+   | `JIRA_CLIENT_SECRET` | Your production app's Client Secret (no VITE_ prefix) |
    | `VITE_JIRA_REDIRECT_URI` | `https://pointpal.app/settings/jira/callback` |
 
 5. **Deploy your site** for the changes to take effect:

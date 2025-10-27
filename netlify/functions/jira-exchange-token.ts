@@ -42,7 +42,7 @@ export const handler: Handler = async (event) => {
 
   try {
     const clientId = process.env.VITE_JIRA_CLIENT_ID;
-    const clientSecret = process.env.VITE_JIRA_CLIENT_SECRET;
+    const clientSecret = process.env.JIRA_CLIENT_SECRET; // Server-side only, no VITE_ prefix
     const redirectUri = process.env.VITE_JIRA_REDIRECT_URI;
 
     if (!clientId || !clientSecret || !redirectUri) {
