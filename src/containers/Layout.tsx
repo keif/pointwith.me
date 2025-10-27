@@ -26,7 +26,7 @@ const Layout = ({children, contentCenter = false}: LayoutProps) => {
 						<div className="flex items-center gap-4" id="topBranding">
 							<img
 								src="/favicon-32x32.png"
-								alt="PointWith.me"
+								alt="PointPal.app"
 								className="w-8 h-8"
 							/>
 							<p className="text-lg font-medium">Planning Poker for Remote Teams!</p>
@@ -82,25 +82,38 @@ const Layout = ({children, contentCenter = false}: LayoutProps) => {
 			{/* Footer */}
 			<footer className="bg-white border-t mt-8 py-6">
 				<div className="container-centered">
-					<p className="text-center text-gray-600 flex items-center justify-center gap-4">
-						<a
-							href="https://twitter.com/pointwithme"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="hover:text-primary transition-colors"
-						>
-							<Twitter size={20} />
-						</a>
-						<a
-							href="https://github.com/keif/pointwith.me"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="hover:text-primary transition-colors"
-						>
-							<Github size={20} />
-						</a>
-						<span>&copy; {new Date().getFullYear()} PointWith.me</span>
-					</p>
+					<div className="flex flex-col items-center gap-4">
+						<div className="flex items-center gap-4">
+							<a
+								href="https://twitter.com/pointwithme"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-gray-600 hover:text-primary transition-colors"
+							>
+								<Twitter size={20} />
+							</a>
+							<a
+								href="https://github.com/keif/pointwith.me"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-gray-600 hover:text-primary transition-colors"
+							>
+								<Github size={20} />
+							</a>
+						</div>
+						<div className="flex items-center gap-4 text-sm text-gray-600">
+							<Link to="/terms" className="hover:text-primary transition-colors">
+								Terms of Service
+							</Link>
+							<span>•</span>
+							<Link to="/privacy" className="hover:text-primary transition-colors">
+								Privacy Policy
+							</Link>
+						</div>
+						<p className="text-center text-gray-600 text-sm">
+							&copy; {new Date().getFullYear()} PointPal.app
+						</p>
+					</div>
 				</div>
 			</footer>
 		</div>

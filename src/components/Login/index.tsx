@@ -33,7 +33,7 @@ const Login = () => {
 					<div className="card text-center">
 						<h2 className="text-2xl font-bold mb-4">What is it?</h2>
 						<p className="text-gray-700">
-							PointWith.me is a way for remote teams to story point quickly and easily.
+							PointPal.app is a way for remote teams to story point quickly and easily.
 							Someone "Drives" your session and all the players open the link on their
 							phone/desktop and just point issues as they cycle through
 						</p>
