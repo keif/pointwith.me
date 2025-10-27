@@ -41,9 +41,10 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const clientId = process.env.VITE_JIRA_CLIENT_ID;
-    const clientSecret = process.env.JIRA_CLIENT_SECRET; // Server-side only, no VITE_ prefix
-    const redirectUri = process.env.VITE_JIRA_REDIRECT_URI;
+    // Use non-VITE_ prefixed env vars for server-side to avoid security scan false positives
+    const clientId = process.env.JIRA_CLIENT_ID;
+    const clientSecret = process.env.JIRA_CLIENT_SECRET;
+    const redirectUri = process.env.JIRA_REDIRECT_URI;
 
     if (!clientId || !clientSecret || !redirectUri) {
       return {

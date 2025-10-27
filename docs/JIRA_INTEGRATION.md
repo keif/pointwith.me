@@ -65,12 +65,17 @@ You'll need to create two separate OAuth apps:
 
 2. Add your **DEVELOPMENT** Jira OAuth credentials to `.env`:
    ```bash
+   # Client-side (VITE_ prefix = exposed to browser)
    VITE_JIRA_CLIENT_ID=your_dev_client_id_here
-   JIRA_CLIENT_SECRET=your_dev_client_secret_here
    VITE_JIRA_REDIRECT_URI=http://localhost:8888/settings/jira/callback
+
+   # Server-side (Netlify Functions only)
+   JIRA_CLIENT_ID=your_dev_client_id_here
+   JIRA_CLIENT_SECRET=your_dev_client_secret_here
+   JIRA_REDIRECT_URI=http://localhost:8888/settings/jira/callback
    ```
 
-   **Note:** `JIRA_CLIENT_SECRET` has no `VITE_` prefix - this keeps it server-side only.
+   **Note:** Variables without `VITE_` prefix are server-side only (Netlify Functions). This prevents Netlify's security scan from flagging them.
 
 3. Restart your development server:
    ```bash
@@ -84,11 +89,13 @@ You'll need to create two separate OAuth apps:
 3. Navigate to: **Site configuration** → **Environment variables**
 4. Add the following variables using your **PRODUCTION** app credentials:
 
-   | Key | Value |
-   |-----|-------|
-   | `VITE_JIRA_CLIENT_ID` | Your production app's Client ID |
-   | `JIRA_CLIENT_SECRET` | Your production app's Client Secret (no VITE_ prefix) |
-   | `VITE_JIRA_REDIRECT_URI` | `https://pointpal.app/settings/jira/callback` |
+   | Key | Value | Notes |
+   |-----|-------|-------|
+   | `VITE_JIRA_CLIENT_ID` | Your production app's Client ID | Client-side (exposed) |
+   | `VITE_JIRA_REDIRECT_URI` | `https://pointpal.app/settings/jira/callback` | Client-side (exposed) |
+   | `JIRA_CLIENT_ID` | Your production app's Client ID (same value) | Server-side only |
+   | `JIRA_CLIENT_SECRET` | Your production app's Client Secret | Server-side only (mark as sensitive) |
+   | `JIRA_REDIRECT_URI` | `https://pointpal.app/settings/jira/callback` | Server-side only |
 
 5. **Deploy your site** for the changes to take effect:
    - Option A: Go to **Deploys** → **Trigger deploy** → **Deploy site**
