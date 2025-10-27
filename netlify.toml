@@ -7,8 +7,9 @@
   NODE_VERSION = "22"
 
 [dev]
-  command = "pnpm dev"
-  targetPort = 3000
+  command = "pnpm dev:vite"
+  targetPort = 5173
+  port = 8888
   framework = "#custom"
 
 [[redirects]]

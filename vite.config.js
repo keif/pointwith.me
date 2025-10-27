@@ -16,8 +16,8 @@ export default defineConfig({
   // Uncomment this line when deploying to GitHub Pages:
   // base: '/pointwith.me/',
   server: {
-    port: 3000,
-    open: true,
+    port: 5173,
+    open: false,
   },
   build: {
     outDir: 'build',

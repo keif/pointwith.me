@@ -1,7 +1,7 @@
 // Theirs
 import React, {useEffect, useState} from 'react';
 import {format} from 'date-fns';
-import {Lock, Unlock, Trophy, X, Users, Eye, UserCheck, RefreshCw, Edit2, Check, Download} from 'lucide-react';
+import {Lock, Unlock, Trophy, X, Users, Eye, UserCheck, RefreshCw, Edit2, Check, Download, ExternalLink, Upload, CheckCircle, AlertCircle} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Ours
@@ -22,6 +22,7 @@ import JiraImportModal from '../Dashboard/JiraImportModal';
 import * as dbRefs from '@/firebase/db';
 import {useInlineEdit} from '@/hooks/useInlineEdit';
 import {useJiraAuth} from '@/hooks/useJiraAuth';
+import {batchUpdateStoryPoints} from '@/services/jira';
 import type { ParticipantRole } from '@/types';
 import type { JiraIssue } from '@/types/jira';
 
@@ -88,7 +89,8 @@ const PokerTable = () => {
 	const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
 	const [editingIssueTitle, setEditingIssueTitle] = useState('');
 	const [isJiraImportOpen, setIsJiraImportOpen] = useState(false);
-	const { isConnected } = useJiraAuth();
+	const [isSyncing, setIsSyncing] = useState(false);
+	const { isConnected, getValidConfig } = useJiraAuth();
 	const [deleteConfirmation, setDeleteConfirmation] = useState<{
 		isOpen: boolean;
 		issueId: string | null;
@@ -245,6 +247,107 @@ const PokerTable = () => {
 				error: 'Failed to import issues',
 			}
 		).then(() => loadPokerTable());
+	};
+
+	const handleBatchSyncToJira = async () => {
+		// Get all issues that have Jira metadata and a final score
+		const issuesToSync = state.issues.filter(
+			issue => issue.jiraKey && issue.jiraId && issue.finalScore !== null && issue.finalScore !== undefined
+		);
+
+		if (issuesToSync.length === 0) {
+			toast.error('No issues with story points to sync');
+			return;
+		}
+
+		const config = await getValidConfig();
+		if (!config) {
+			toast.error('Jira connection not available');
+			return;
+		}
+
+		if (!config.storyPointsFieldId) {
+			toast.error('Story points field not configured. Please configure it in settings.');
+			return;
+		}
+
+		setIsSyncing(true);
+
+		const updates = issuesToSync.map(issue => ({
+			issueKey: issue.jiraKey!,
+			points: issue.finalScore,
+		}));
+
+		try {
+			const result = await batchUpdateStoryPoints(
+				config.cloudId,
+				config.accessToken,
+				config.storyPointsFieldId,
+				updates
+			);
+
+			if (result.failed > 0) {
+				toast.error(
+					`Synced ${result.successful} of ${result.total} issues. ${result.failed} failed.`,
+					{ duration: 5000 }
+				);
+				console.error('Failed syncs:', result.results.filter(r => !r.success));
+			} else {
+				toast.success(`Successfully synced ${result.successful} ${result.successful === 1 ? 'issue' : 'issues'} to Jira`);
+			}
+		} catch (error) {
+			console.error('Batch sync error:', error);
+			toast.error('Failed to sync story points to Jira');
+		} finally {
+			setIsSyncing(false);
+		}
+	};
+
+	const handleSyncSingleIssue = (issue: PokerTableIssue) => async (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+
+		if (!issue.jiraKey || !issue.jiraId) {
+			toast.error('Issue is not linked to Jira');
+			return;
+		}
+
+		if (issue.finalScore === null || issue.finalScore === undefined) {
+			toast.error('Issue does not have a story point estimate');
+			return;
+		}
+
+		const config = await getValidConfig();
+		if (!config) {
+			toast.error('Jira connection not available');
+			return;
+		}
+
+		if (!config.storyPointsFieldId) {
+			toast.error('Story points field not configured. Please configure it in settings.');
+			return;
+		}
+
+		const toastId = toast.loading(`Syncing ${issue.jiraKey}...`);
+
+		try {
+			const result = await batchUpdateStoryPoints(
+				config.cloudId,
+				config.accessToken,
+				config.storyPointsFieldId,
+				[{ issueKey: issue.jiraKey, points: issue.finalScore }]
+			);
+
+			if (result.successful > 0) {
+				toast.success(`Successfully synced ${issue.jiraKey}`, { id: toastId });
+			} else {
+				const errorMessage = result.results[0]?.error || 'Unknown error';
+				toast.error(`Failed to sync ${issue.jiraKey}: ${errorMessage}`, { id: toastId, duration: 5000 });
+			}
+		} catch (error) {
+			console.error('Single sync error:', error);
+			toast.error(`Failed to sync ${issue.jiraKey}`, { id: toastId });
+		}
 	};
 
 	const removeIssue = (issueId: string) => (e: React.MouseEvent) => {
@@ -439,13 +542,28 @@ const PokerTable = () => {
 				{/* Import from Jira Button */}
 				{isConnected && (
 					<div className="mt-4 pt-4 border-t border-gray-200">
-						<button
-							onClick={() => setIsJiraImportOpen(true)}
-							className="btn btn-secondary flex items-center gap-2"
-						>
-							<Download size={16} />
-							Import from Jira
-						</button>
+						<div className="flex flex-wrap gap-2">
+							<button
+								onClick={() => setIsJiraImportOpen(true)}
+								className="btn btn-secondary flex items-center gap-2"
+							>
+								<Download size={16} />
+								Import from Jira
+							</button>
+							<button
+								onClick={handleBatchSyncToJira}
+								disabled={isSyncing || state.issues.filter(i => i.jiraKey && i.finalScore !== null).length === 0}
+								className="btn btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+								title={state.issues.filter(i => i.jiraKey && i.finalScore !== null).length === 0 ? 'No issues with story points to sync' : 'Push all story points to Jira (only updates story points field)'}
+							>
+								{isSyncing ? (
+									<RefreshCw size={16} className="animate-spin" />
+								) : (
+									<Upload size={16} />
+								)}
+								{isSyncing ? 'Syncing...' : 'Push All to Jira'}
+							</button>
+						</div>
 					</div>
 				)}
 				</div>
@@ -546,6 +664,18 @@ const PokerTable = () => {
 											<div className="flex items-center gap-2 mb-1">
 												{s.isLocked ? <Lock size={16} className="text-gray-500" /> : <Unlock size={16} className="text-gray-500" />}
 												<h3 className="text-lg font-semibold text-gray-900">{s.title}</h3>
+												{s.jiraUrl && (
+													<a
+														href={s.jiraUrl}
+														target="_blank"
+														rel="noopener noreferrer"
+														onClick={(e) => e.stopPropagation()}
+														className="p-1 text-blue-500 hover:text-blue-700 transition-colors"
+														title={`Open ${s.jiraKey} in Jira`}
+													>
+														<ExternalLink size={16} />
+													</a>
+												)}
 												{currentUser && userId === currentUser.uid && (
 													<button
 														onClick={handleStartEditIssue(s.id, s.title)}
@@ -588,16 +718,29 @@ const PokerTable = () => {
 											</div>
 										</div>
 
-										{/* Only show the delete action if the authenticated user is the owner. */}
+										{/* Action buttons for owner */}
 										{currentUser && userId === currentUser.uid && (
-											<button
-												data-testid="delete-issue-button"
-												onClick={removeIssue(s.id)}
-												className="ml-4 p-2 text-danger hover:bg-red-50 rounded transition-colors"
-												aria-label="Delete issue"
-											>
-												<X size={20} />
-											</button>
+											<div className="ml-4 flex items-center gap-2">
+												{/* Sync button - show if issue has Jira link and final score */}
+												{s.jiraKey && s.finalScore !== null && s.finalScore !== undefined && isConnected && (
+													<button
+														onClick={handleSyncSingleIssue(s)}
+														className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+														aria-label="Sync to Jira"
+														title={`Push story points to ${s.jiraKey} (only updates story points field)`}
+													>
+														<Upload size={20} />
+													</button>
+												)}
+												<button
+													data-testid="delete-issue-button"
+													onClick={removeIssue(s.id)}
+													className="p-2 text-danger hover:bg-red-50 rounded transition-colors"
+													aria-label="Delete issue"
+												>
+													<X size={20} />
+												</button>
+											</div>
 										)}
 									</>
 								)}

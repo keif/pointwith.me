@@ -113,11 +113,11 @@ const JiraSettings: React.FC = () => {
 							</li>
 							<li className="flex items-start gap-2">
 								<span className="text-primary">•</span>
-								<span>Push story point estimates back to Jira</span>
+								<span>Push story point estimates back to Jira (only updates story points field)</span>
 							</li>
 							<li className="flex items-start gap-2">
 								<span className="text-primary">•</span>
-								<span>Batch sync multiple issues at once</span>
+								<span>Batch sync multiple issues at once (non-destructive)</span>
 							</li>
 							<li className="flex items-start gap-2">
 								<span className="text-primary">•</span>
@@ -180,7 +180,7 @@ const JiraSettings: React.FC = () => {
 					<div className="border-t pt-4">
 						<h3 className="font-semibold mb-3">Story Points Field</h3>
 						<p className="text-sm text-gray-600 mb-3">
-							Select the custom field used for story points in your Jira instance.
+							Select the custom field used for story points in your Jira instance. This is the only field that will be updated when syncing estimates.
 						</p>
 
 						{loadingFields ? (
