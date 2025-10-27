@@ -23,33 +23,36 @@ const Layout = ({children, contentCenter = false}: LayoutProps) => {
 				<div className="container-centered">
 					<div className="flex items-center justify-between h-16">
 						{/* Branding */}
-						<div className="flex items-center gap-4" id="topBranding">
+						<Link to="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity" id="topBranding">
 							<img
 								src="/point-pal-logo.png"
-								alt="PointPal.app"
-								className="w-8 h-8 rounded-md"
+								alt="PointPal"
+								className="w-10 h-10 rounded-lg"
 							/>
-							<p className="text-lg font-medium">Planning Poker for Remote Teams!</p>
-						</div>
+							<div className="flex flex-col">
+								<span className="text-xl font-bold tracking-tight">PointPal</span>
+								<span className="text-xs text-gray-300 hidden sm:block">Planning Poker for Remote Teams</span>
+							</div>
+						</Link>
 
 						{/* User Menu */}
 						{!!currentUser && (
-							<div className="flex items-center gap-4">
-								<div className="flex items-center gap-2">
-									<User size={16} />
-									<span className="text-sm">{userDisplay}</span>
+							<div className="flex items-center gap-3">
+								<div className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 rounded-lg">
+									<User size={16} className="text-gray-300" />
+									<span className="text-sm font-medium hidden md:inline">{userDisplay}</span>
 								</div>
 								<Link
 									to="/settings"
-									className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+									className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors"
 									title="Settings"
 								>
-									<Settings size={16} />
-									<span className="hidden sm:inline">Settings</span>
+									<Settings size={18} />
+									<span className="hidden sm:inline text-sm font-medium">Settings</span>
 								</Link>
 								<button
 									onClick={() => auth.auth.signOut()}
-									className="btn btn-danger text-sm"
+									className="btn btn-danger text-sm font-medium"
 								>
 									Logout
 								</button>
