@@ -1,7 +1,7 @@
 // Theirs
 import React, {useEffect, useState} from 'react';
 import {format} from 'date-fns';
-import {Lock, Unlock, Trophy, X, Users, Eye, UserCheck, RefreshCw, Edit2, Check} from 'lucide-react';
+import {Lock, Unlock, Trophy, X, Users, Eye, UserCheck, RefreshCw, Edit2, Check, Download} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Ours
@@ -18,9 +18,12 @@ import IssueCreator from './IssueCreator';
 import ModalActions from './ModalActions';
 import RoleSelectionModal from './RoleSelectionModal';
 import ConfirmDialog from '../common/ConfirmDialog';
+import JiraImportModal from '../Dashboard/JiraImportModal';
 import * as dbRefs from '@/firebase/db';
 import {useInlineEdit} from '@/hooks/useInlineEdit';
+import {useJiraAuth} from '@/hooks/useJiraAuth';
 import type { ParticipantRole } from '@/types';
+import type { JiraIssue } from '@/types/jira';
 
 interface PokerTableIssue {
   id: string;
@@ -32,6 +35,9 @@ interface PokerTableIssue {
   lastEdited?: string;
   lastEditedBy?: string;
   lastEditedByName?: string;
+  jiraKey?: string;
+  jiraId?: string;
+  jiraUrl?: string;
 }
 
 interface TableParticipant {
@@ -81,6 +87,8 @@ const PokerTable = () => {
 	const [showRoleModal, setShowRoleModal] = React.useState(true);
 	const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
 	const [editingIssueTitle, setEditingIssueTitle] = useState('');
+	const [isJiraImportOpen, setIsJiraImportOpen] = useState(false);
+	const { isConnected } = useJiraAuth();
 	const [deleteConfirmation, setDeleteConfirmation] = useState<{
 		isOpen: boolean;
 		issueId: string | null;
@@ -207,6 +215,34 @@ const PokerTable = () => {
 				loading: 'Creating issue...',
 				success: `Created: ${newIssueName}`,
 				error: 'Failed to create issue',
+			}
+		).then(() => loadPokerTable());
+	};
+
+	const handleImportFromJira = (jiraIssues: JiraIssue[]) => {
+		if (jiraIssues.length === 0) return;
+
+		const issuesData: Record<string, any> = {};
+		jiraIssues.forEach((jiraIssue) => {
+			const issueId = shortid.generate();
+			issuesData[issueId] = {
+				title: `${jiraIssue.key}: ${jiraIssue.summary}`,
+				created: new Date().toISOString(),
+				isLocked: false,
+				showVotes: false,
+				finalScore: jiraIssue.storyPoints || null,
+				jiraKey: jiraIssue.key,
+				jiraId: jiraIssue.id,
+				jiraUrl: jiraIssue.jiraUrl,
+			};
+		});
+
+		toast.promise(
+			update(ptIssuesRef, issuesData),
+			{
+				loading: 'Importing issues...',
+				success: `Imported ${jiraIssues.length} ${jiraIssues.length === 1 ? 'issue' : 'issues'}`,
+				error: 'Failed to import issues',
 			}
 		).then(() => loadPokerTable());
 	};
@@ -399,6 +435,19 @@ const PokerTable = () => {
 						lastEdited={state.pokerTable.lastEdited}
 						lastEditedByName={state.pokerTable.lastEditedByName}
 					/>
+
+				{/* Import from Jira Button */}
+				{isConnected && (
+					<div className="mt-4 pt-4 border-t border-gray-200">
+						<button
+							onClick={() => setIsJiraImportOpen(true)}
+							className="btn btn-secondary flex items-center gap-2"
+						>
+							<Download size={16} />
+							Import from Jira
+						</button>
+					</div>
+				)}
 				</div>
 
 				{/* Active Participants */}
@@ -590,6 +639,13 @@ const PokerTable = () => {
 				onCancel={handleCancelDelete}
 				showDontAskAgain={true}
 				dontAskAgainKey="skipDeleteIssueConfirmation"
+			/>
+
+			{/* Jira Import Modal */}
+			<JiraImportModal
+				isOpen={isJiraImportOpen}
+				onClose={() => setIsJiraImportOpen(false)}
+				onImport={handleImportFromJira}
 			/>
 		</Layout>
 	);

@@ -131,7 +131,7 @@ export const JQL_PRESETS: JQLPreset[] = [
   {
     label: 'Backlog (Unestimated)',
     description: 'Backlog items without story point estimates',
-    jql: 'project = {PROJECT} AND "Story Points" is EMPTY AND status in (Backlog, "To Do") ORDER BY priority DESC',
+    jql: '"Story Points" is EMPTY AND status in (Backlog, "To Do") ORDER BY priority DESC',
   },
   {
     label: 'Assigned to Me',
