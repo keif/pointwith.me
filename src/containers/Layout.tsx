@@ -25,9 +25,9 @@ const Layout = ({children, contentCenter = false}: LayoutProps) => {
 						{/* Branding */}
 						<div className="flex items-center gap-4" id="topBranding">
 							<img
-								src="/favicon-32x32.png"
+								src="/point-pal-logo.png"
 								alt="PointPal.app"
-								className="w-8 h-8"
+								className="w-8 h-8 rounded-md"
 							/>
 							<p className="text-lg font-medium">Planning Poker for Remote Teams!</p>
 						</div>
