@@ -12,19 +12,19 @@ class SocialProfileList extends PureComponent<SocialProfileListProps> {
   /**
    * Unlinks a provider from the current user account
    */
-  handleProviderUnlink = async (e, provider) => {
+  handleProviderUnlink = async (e: React.MouseEvent, provider: string) => {
     const { auth, unlinkedProvider } = this.props;
 
     if (window.confirm(`Do you really want to unlink ${provider}?`)) {
       const providers = await auth()
         .currentUser.unlink(`${provider}.com`)
-        .catch(err => console.error(err));
+        .catch((err: Error) => console.error(err));
 
       unlinkedProvider(provider, providers.providerData);
     }
   };
 
-  renderProfileList = ({ providerId, photoURL }) => {
+  renderProfileList = ({ providerId, photoURL }: { providerId: string; photoURL: string }) => {
     const providerName = providerId.split('.')[0];
 
     return (
@@ -41,7 +41,7 @@ class SocialProfileList extends PureComponent<SocialProfileListProps> {
             <Item.Meta>
               <Button
                 primary
-                onClick={e => this.handleProviderUnlink(e, providerName)}
+                onClick={(e: React.MouseEvent) => this.handleProviderUnlink(e, providerName)}
               >
                 Unlink
               </Button>

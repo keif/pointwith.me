@@ -44,7 +44,7 @@ const buttonList = {
 const SocialButtonList = ({currentUser, currentProviders = null}: SocialButtonListProps) => {
     const navigate = useNavigate();
 
-    const authHandler = authData => {
+    const authHandler = (authData: any) => {
         if (authData) {
             if (currentProviders === null) {
                 navigate('/dashboard');
@@ -56,20 +56,20 @@ const SocialButtonList = ({currentUser, currentProviders = null}: SocialButtonLi
         }
     };
 
-    const authenticate = (e, provider) => {
+    const authenticate = (e: React.MouseEvent, provider: keyof typeof buttonList) => {
         const providerOAuth = buttonList[provider].provider();
         if (!currentUser) {
             popUpSignIn(providerOAuth)
                 .then(authHandler)
-                .catch(err => console.error(err));
+                .catch((err: Error) => console.error(err));
         } else {
             currentUser.linkWithPopup(providerOAuth)
                 .then(authHandler)
-                .catch(err => console.error(err));
+                .catch((err: Error) => console.error(err));
         }
     };
 
-    const renderButtonList = provider => {
+    const renderButtonList = (provider: keyof typeof buttonList) => {
         const visible = buttonList[provider].visible;
 
         if (visible) {
@@ -90,7 +90,7 @@ const SocialButtonList = ({currentUser, currentProviders = null}: SocialButtonLi
 
     return (
         <div id="loginButtons" className="space-y-2">
-            {Object.keys(buttonList).map(renderButtonList)}
+            {(Object.keys(buttonList) as Array<keyof typeof buttonList>).map(renderButtonList)}
         </div>
     );
 };

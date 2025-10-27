@@ -1,7 +1,13 @@
 import {X, ChevronRight} from 'lucide-react';
 import React from 'react';
 
-const ModalActions = ({nextIssue, onClose, onNext}) => {
+interface ModalActionsProps {
+	nextIssue: string | boolean;
+	onClose: () => void;
+	onNext: (issue: string | boolean) => void;
+}
+
+const ModalActions = ({nextIssue, onClose, onNext}: ModalActionsProps) => {
 	return (
 		<div id="modalControl" className="border-t bg-gray-50 px-6 py-4 flex items-center justify-between gap-4">
 			<button onClick={onClose} className="btn btn-danger flex items-center gap-2">

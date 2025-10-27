@@ -20,36 +20,80 @@ import RoleSelectionModal from './RoleSelectionModal';
 import ConfirmDialog from '../common/ConfirmDialog';
 import * as dbRefs from '@/firebase/db';
 import {useInlineEdit} from '@/hooks/useInlineEdit';
+import type { ParticipantRole } from '@/types';
+
+interface PokerTableIssue {
+  id: string;
+  title: string;
+  created: string;
+  isLocked: boolean;
+  showVotes: boolean;
+  finalScore: number | null;
+  lastEdited?: string;
+  lastEditedBy?: string;
+  lastEditedByName?: string;
+}
+
+interface TableParticipant {
+  id: string;
+  uid: string;
+  displayName: string;
+  joinedAt: string;
+  isHost: boolean;
+  role: ParticipantRole;
+}
+
+interface PokerTableState {
+  pokerTable: {
+    tableName?: string;
+    ownerName?: string;
+    created?: string;
+    lastEdited?: string;
+    lastEditedByName?: string;
+    currentIssue?: string | boolean;
+    issueModal?: boolean;
+    issues?: Record<string, PokerTableIssue>;
+  };
+  issuesClient: null;
+  issues: PokerTableIssue[];
+  currentIssue: string | boolean;
+  nextIssue: string | boolean;
+  participants: TableParticipant[];
+}
 
 
 const PokerTable = () => {
-	const {userId, tableId} = useParams();
+	const {userId, tableId} = useParams<{ userId: string; tableId: string }>();
 	const currentUser = auth.auth.currentUser;
 	const issuesClient = issues.createClient(
-		userId,  // Use table owner's ID from URL, not current user
-		tableId
+		userId!,  // Use table owner's ID from URL, not current user
+		tableId!
 	);
-	const [state, setState] = React.useState({
-		pokerTable: {} as any,
+	const [state, setState] = React.useState<PokerTableState>({
+		pokerTable: {},
 		issuesClient: null,
 		issues: [],
 		currentIssue: false,
 		nextIssue: false,
 		participants: [],
 	});
-	const [userRole, setUserRole] = React.useState(null);
+	const [userRole, setUserRole] = React.useState<ParticipantRole | null>(null);
 	const [showRoleModal, setShowRoleModal] = React.useState(true);
 	const [editingIssueId, setEditingIssueId] = useState<string | null>(null);
 	const [editingIssueTitle, setEditingIssueTitle] = useState('');
-	const [deleteConfirmation, setDeleteConfirmation] = useState({
+	const [deleteConfirmation, setDeleteConfirmation] = useState<{
+		isOpen: boolean;
+		issueId: string | null;
+		issueName: string;
+	}>({
 		isOpen: false,
 		issueId: null,
 		issueName: '',
 	});
-	const pokerTableRef = db.pokerTable(userId, tableId);
+	const pokerTableRef = db.pokerTable(userId!, tableId!);
 	const ptIssuesRef = db.pokerTableIssuesRoot(
-		userId,  // Use table owner's ID from URL, not current user
-		tableId
+		userId!,  // Use table owner's ID from URL, not current user
+		tableId!
 	);
 
 	useEffect(() => {
@@ -71,8 +115,10 @@ const PokerTable = () => {
 	}, [userRole]);
 
 	const setupParticipantTracking = () => {
-		const participantsRef = dbRefs.pokerTableParticipants(userId, tableId);
-		const currentParticipantRef = dbRefs.pokerTableParticipant(userId, tableId, currentUser.uid);
+		if (!currentUser) return () => {};
+
+		const participantsRef = dbRefs.pokerTableParticipants(userId!, tableId!);
+		const currentParticipantRef = dbRefs.pokerTableParticipant(userId!, tableId!, currentUser.uid);
 
 		// Add current user to participants
 		const participantData = {
@@ -92,8 +138,8 @@ const PokerTable = () => {
 		// Listen to participant changes
 		onValue(participantsRef, (snapshot) => {
 			if (snapshot.exists()) {
-				const participantsData = snapshot.val();
-				const participantsList = Object.keys(participantsData).map(key => ({
+				const participantsData = snapshot.val() as Record<string, Omit<TableParticipant, 'id'>>;
+				const participantsList: TableParticipant[] = Object.keys(participantsData).map(key => ({
 					...participantsData[key],
 					id: key,
 				}));
@@ -122,7 +168,7 @@ const PokerTable = () => {
 		};
 	};
 
-	const handleSelectRole = (role) => {
+	const handleSelectRole = (role: ParticipantRole) => {
 		setUserRole(role);
 		setShowRoleModal(false);
 		localStorage.setItem(`pokerRole_${tableId}`, role);
@@ -130,8 +176,10 @@ const PokerTable = () => {
 	};
 
 	const handleToggleRole = () => {
-		const newRole = userRole === 'voter' ? 'spectator' : 'voter';
-		const currentParticipantRef = dbRefs.pokerTableParticipant(userId, tableId, currentUser.uid);
+		if (!currentUser) return;
+
+		const newRole: ParticipantRole = userRole === 'voter' ? 'spectator' : 'voter';
+		const currentParticipantRef = dbRefs.pokerTableParticipant(userId!, tableId!, currentUser.uid);
 
 		update(currentParticipantRef, {role: newRole})
 			.then(() => {
@@ -144,7 +192,7 @@ const PokerTable = () => {
 			});
 	};
 
-	const handleCreateIssue = (newIssueName) => {
+	const handleCreateIssue = (newIssueName: string) => {
 		const uid = shortid.generate();
 		const data = {
 			title: newIssueName,
@@ -163,7 +211,7 @@ const PokerTable = () => {
 		).then(() => loadPokerTable());
 	};
 
-	const removeIssue = (issueId) => (e) => {
+	const removeIssue = (issueId: string) => (e: React.MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
 
@@ -184,7 +232,9 @@ const PokerTable = () => {
 		}
 	};
 
-	const performDeleteIssue = (issueId, issueName) => {
+	const performDeleteIssue = (issueId: string | null, issueName: string) => {
+		if (!issueId) return;
+
 		// Optimistically update UI
 		const filteredIssues = state.issues.filter(({id}) => id !== issueId);
 		setState(prevState => ({
@@ -217,7 +267,9 @@ const PokerTable = () => {
 		setDeleteConfirmation({ isOpen: false, issueId: null, issueName: '' });
 	};
 
-	const handleViewIssue = async (currentIssue) => {
+	const handleViewIssue = async (currentIssue: string | boolean) => {
+		if (!currentUser) return;
+
 		update(pokerTableRef, {currentIssue: false})
 			.then(() => {
 				if (userId !== currentUser.uid) {
@@ -227,15 +279,15 @@ const PokerTable = () => {
 			});
 	};
 
-	const getNextIssue = (currentIssue, issuesList) => {
-		let nextIssue = false;
+	const getNextIssue = (currentIssue: string | boolean, issuesList: PokerTableIssue[]): string | boolean => {
+		let nextIssue: PokerTableIssue | undefined;
 		issuesList.forEach((issue, i) => {
 			if (issue.id === currentIssue) {
 				nextIssue = issuesList[i + 1];
 			}
 		});
 
-		return nextIssue ? (nextIssue as any).id : false;
+		return nextIssue?.id || false;
 	};
 
 	const handleCloseIssue = async () => {
@@ -259,6 +311,8 @@ const PokerTable = () => {
 
 	const handleSaveEditIssue = (issueId: string) => async (e: React.MouseEvent | React.KeyboardEvent) => {
 		e.stopPropagation();
+		if (!currentUser) return;
+
 		const trimmedTitle = editingIssueTitle.trim();
 
 		if (!trimmedTitle) {
@@ -270,7 +324,7 @@ const PokerTable = () => {
 			return;
 		}
 
-		const issueRef = db.pokerTableIssue(userId, tableId, issueId);
+		const issueRef = db.pokerTableIssue(userId!, tableId!, issueId);
 		const updateData = {
 			title: trimmedTitle,
 			lastEdited: new Date().toISOString(),
@@ -305,8 +359,8 @@ const PokerTable = () => {
 	const loadPokerTable = () => {
 		onValue(pokerTableRef, (snapshot) => {
 			if (snapshot.exists()) {
-				const table = snapshot.val();
-				const newIssuesList = [];
+				const table = snapshot.val() as PokerTableState['pokerTable'];
+				const newIssuesList: PokerTableIssue[] = [];
 				for (let issue in table.issues) {
 					newIssuesList.push({
 						...table.issues[issue],
@@ -319,7 +373,7 @@ const PokerTable = () => {
 					return 0;
 				});
 
-				const nextIssue = getNextIssue(table.currentIssue, newIssuesList);
+				const nextIssue = getNextIssue(table.currentIssue || false, newIssuesList);
 				setState(prevState => ({
 					...prevState,
 					pokerTable: table,
@@ -358,7 +412,7 @@ const PokerTable = () => {
 						</div>
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
 							{state.participants.map((participant) => {
-								const isCurrentUser = participant.id === currentUser.uid;
+								const isCurrentUser = currentUser && participant.id === currentUser.uid;
 								return (
 									<div
 										key={participant.id}
@@ -443,7 +497,7 @@ const PokerTable = () => {
 											<div className="flex items-center gap-2 mb-1">
 												{s.isLocked ? <Lock size={16} className="text-gray-500" /> : <Unlock size={16} className="text-gray-500" />}
 												<h3 className="text-lg font-semibold text-gray-900">{s.title}</h3>
-												{userId === currentUser.uid && (
+												{currentUser && userId === currentUser.uid && (
 													<button
 														onClick={handleStartEditIssue(s.id, s.title)}
 														className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
@@ -486,7 +540,7 @@ const PokerTable = () => {
 										</div>
 
 										{/* Only show the delete action if the authenticated user is the owner. */}
-										{userId === currentUser.uid && (
+										{currentUser && userId === currentUser.uid && (
 											<button
 												data-testid="delete-issue-button"
 												onClick={removeIssue(s.id)}
@@ -511,9 +565,9 @@ const PokerTable = () => {
 				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-8 overflow-y-auto">
 					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-8">
 						<div className="p-4">
-							<Issue issue={state.currentIssue} participants={state.participants} userRole={userRole} onToggleRole={handleToggleRole} />
+							<Issue issue={state.currentIssue} participants={state.participants as any} userRole={userRole ?? 'spectator'} onToggleRole={handleToggleRole} />
 						</div>
-						{(userId === currentUser.uid) && (
+						{currentUser && (userId === currentUser.uid) && (
 							<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />
 						)}
 					</div>

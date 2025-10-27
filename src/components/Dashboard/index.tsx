@@ -14,12 +14,23 @@ import withAuthentication from '@/containers/withAuthentication';
 import PokerTableNameForm from './PokerTableNameForm';
 import ConfirmDialog from '../common/ConfirmDialog';
 
+interface PokerTableData {
+	id: string;
+	tableName: string;
+	created: string;
+	ownerId: string;
+	ownerName: string;
+}
 
 const Dashboard = () => {
 	const currentUser = auth.auth.currentUser;
-	const pokerTablesClient = pokerTablesApi.createClient(currentUser.uid);
-	const [pokerTables, setPokerTables] = useState([]);
-	const [deleteConfirmation, setDeleteConfirmation] = useState({
+	const pokerTablesClient = currentUser ? pokerTablesApi.createClient(currentUser.uid) : null;
+	const [pokerTables, setPokerTables] = useState<PokerTableData[]>([]);
+	const [deleteConfirmation, setDeleteConfirmation] = useState<{
+		isOpen: boolean;
+		tableId: string | null;
+		tableName: string;
+	}>({
 		isOpen: false,
 		tableId: null,
 		tableName: '',
@@ -29,7 +40,9 @@ const Dashboard = () => {
 		loadPokerTables();
 	}, []);
 
-	const createPokerTable = (newPokerTableName) => {
+	const createPokerTable = (newPokerTableName: string) => {
+		if (!currentUser) return;
+
 		const uid = shortid.generate();
 		const pRef = db.pokerTable(currentUser.uid, uid);
 		const data = {
@@ -44,7 +57,7 @@ const Dashboard = () => {
 		loadPokerTables();
 	};
 
-	const removePokerTable = (pokerTableId) => (e) => {
+	const removePokerTable = (pokerTableId: string) => (e: React.MouseEvent) => {
 		e.preventDefault();
 
 		const table = pokerTables.find(t => t.id === pokerTableId);
@@ -64,7 +77,9 @@ const Dashboard = () => {
 		}
 	};
 
-	const performDeleteTable = (pokerTableId) => {
+	const performDeleteTable = (pokerTableId: string | null) => {
+		if (!pokerTableId || !pokerTablesClient) return;
+
 		// Optimistically deletes poker table. i.e. doesn't block the ui from updating
 		pokerTablesClient.remove(pokerTableId);
 
@@ -86,11 +101,13 @@ const Dashboard = () => {
 	};
 
 	const loadPokerTables = () => {
+		if (!currentUser) return;
+
 		const pokerTablesRef = db.pokerTables(currentUser.uid);
 		onValue(pokerTablesRef, (snapshot) => {
 			if (snapshot.exists()) {
 				const pokerTables = snapshot.val();
-				let newPokerTablesState = [];
+				let newPokerTablesState: PokerTableData[] = [];
 				for (let table in pokerTables) {
 					newPokerTablesState.push({
 						...pokerTables[table],
@@ -122,7 +139,7 @@ const Dashboard = () => {
 						{pokerTables.length > 0 ? pokerTables.map((s) => (
 							<div key={s.id} className="flex items-center justify-between py-4 hover:bg-gray-50 transition-colors">
 								<Link
-									to={`/table/${currentUser.uid}/${s.id}`}
+									to={`/table/${currentUser?.uid}/${s.id}`}
 									className="flex-1 no-underline text-inherit hover:text-primary transition-colors"
 								>
 									<h3 className="text-lg font-semibold text-gray-900">{s.tableName}</h3>

@@ -52,8 +52,8 @@ const defaultProps = {
 	tableName: 'Test Table',
 	ownerName: 'Test Owner',
 	created: new Date().toISOString(),
-	lastEdited: null,
-	lastEditedByName: null
+	lastEdited: undefined,
+	lastEditedByName: undefined
 };
 
 describe('IssueCreator Component', () => {

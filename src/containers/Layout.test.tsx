@@ -57,8 +57,8 @@ describe('Layout Component', () => {
 
 		const mainElement = container.querySelector('main');
 		expect(mainElement).toBeInTheDocument();
-		expect(mainElement.className).toContain('items-center');
-		expect(mainElement.className).toContain('justify-center');
+		expect(mainElement!.className).toContain('items-center');
+		expect(mainElement!.className).toContain('justify-center');
 	});
 
 	// Additional tests as needed...

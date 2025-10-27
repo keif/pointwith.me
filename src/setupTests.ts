@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 // Make 'jest' available as an alias for 'vi' for compatibility with existing tests
-globalThis.jest = vi;
+(globalThis as any).jest = vi;
 
 export const mockedNavigator = vi.fn();
 

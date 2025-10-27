@@ -9,11 +9,20 @@ import toast from 'react-hot-toast';
 import {formatEditHistory} from '@/utils/timeAgo';
 import {useInlineEdit} from '@/hooks/useInlineEdit';
 
-const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastEditedByName}) => {
+interface IssueCreatorProps {
+    onClick: (issueName: string) => void;
+    tableName?: string;
+    ownerName?: string;
+    created?: string;
+    lastEdited?: string;
+    lastEditedByName?: string;
+}
+
+const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastEditedByName}: IssueCreatorProps) => {
     const navigate = useNavigate();
-    const {userId, tableId} = useParams();
+    const {userId, tableId} = useParams<{ userId: string; tableId: string }>();
     const currentUser = auth.auth.currentUser;
-    const isOwner = userId === currentUser.uid;
+    const isOwner = currentUser && userId === currentUser.uid;
 
     const {
         isEditing,
@@ -24,9 +33,11 @@ const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastE
         handleSaveEdit,
         handleKeyDown
     } = useInlineEdit({
-        initialValue: tableName,
+        initialValue: tableName || '',
         onSave: async (trimmedName) => {
-            const pokerTableRef = db.pokerTable(userId, tableId);
+            if (!currentUser) return;
+
+            const pokerTableRef = db.pokerTable(userId!, tableId!);
             const updateData = {
                 tableName: trimmedName,
                 lastEdited: new Date().toISOString(),
@@ -48,7 +59,7 @@ const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastE
         maxLengthErrorMessage: 'Table name must be 100 characters or less'
     });
 
-    if (userId !== currentUser.uid) {
+    if (!isOwner) {
         return (
             <div>
                 <h1 className="text-3xl font-bold mb-2">{tableName}</h1>

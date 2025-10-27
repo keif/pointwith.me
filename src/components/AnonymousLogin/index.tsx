@@ -10,9 +10,9 @@ interface AnonymousLoginProps {
 const AnonymousLogin = ({ onSuccess = null }: AnonymousLoginProps) => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name.trim()) {

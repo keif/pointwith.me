@@ -4,12 +4,13 @@ import store from 'store';
 
 import { auth } from '@/firebase';
 import {useLocation, useNavigate} from 'react-router-dom';
+import type { User } from 'firebase/auth';
 
-export default WrappedComponent => {
-  const WithAuthentication = (props) => {
+export default (WrappedComponent: React.ComponentType<any>) => {
+  const WithAuthentication = (props: any) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

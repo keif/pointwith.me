@@ -1,11 +1,17 @@
 import React, {useState} from 'react';
 import fibonacci from '@/utils/fibonacci';
 
-const availablePoints = [...new Set(fibonacci(8))];
-const VotingBlock = ({onClick, isLocked, userVote}) => {
-	const [selectedValue, setSelectedValue] = useState(null);
+interface VotingBlockProps {
+	onClick: (vote: number | null) => void;
+	isLocked: boolean;
+	userVote: number | null;
+}
 
-	const handleSelect = (p) => {
+const availablePoints = [...new Set(fibonacci(8))];
+const VotingBlock = ({onClick, isLocked, userVote}: VotingBlockProps) => {
+	const [selectedValue, setSelectedValue] = useState<number | null>(null);
+
+	const handleSelect = (p: number) => {
 		setSelectedValue(p);
 		onClick(p);
 	}

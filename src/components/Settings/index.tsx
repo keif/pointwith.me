@@ -18,7 +18,7 @@ const Settings = () => {
 		setSkipTableConfirmation(tableSkip);
 	}, []);
 
-	const handleToggleIssueConfirmation = (e) => {
+	const handleToggleIssueConfirmation = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const checked = e.target.checked;
 		setSkipIssueConfirmation(checked);
 
@@ -31,7 +31,7 @@ const Settings = () => {
 		}
 	};
 
-	const handleToggleTableConfirmation = (e) => {
+	const handleToggleTableConfirmation = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const checked = e.target.checked;
 		setSkipTableConfirmation(checked);
 

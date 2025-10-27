@@ -1,9 +1,13 @@
 import React, {useState} from 'react';
 import {Plus} from 'lucide-react';
 
-const IssueNameForm = ({ handleIssueSubmit }) => {
+interface IssueNameFormProps {
+    handleIssueSubmit: (issueName: string) => void;
+}
+
+const IssueNameForm = ({ handleIssueSubmit }: IssueNameFormProps) => {
     const [newIssueName, setNewIssueName] = useState('');
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (newIssueName.trim()) {
             handleIssueSubmit(newIssueName);

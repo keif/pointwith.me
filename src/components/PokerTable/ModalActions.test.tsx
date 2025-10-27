@@ -7,7 +7,7 @@ describe('ModalActions Component', () => {
 	test('calls onClose when Close button is clicked', () => {
 		const mockOnClose = vi.fn();
 		const mockOnNext = vi.fn();
-		const { getByText } = render(<ModalActions onClose={mockOnClose} onNext={mockOnNext} nextIssue={null} />);
+		const { getByText } = render(<ModalActions onClose={mockOnClose} onNext={mockOnNext} nextIssue={false} />);
 
 		fireEvent.click(getByText('Close'));
 		expect(mockOnClose).toHaveBeenCalled();
@@ -25,7 +25,7 @@ describe('ModalActions Component', () => {
 	test('Next button is disabled when nextIssue is not provided', () => {
 		const mockOnNext = vi.fn();
 		const mockOnClose = vi.fn();
-		const { getByText } = render(<ModalActions onNext={mockOnNext} onClose={mockOnClose} nextIssue={null} />);
+		const { getByText } = render(<ModalActions onNext={mockOnNext} onClose={mockOnClose} nextIssue={false} />);
 
 		expect(getByText('Next').closest('button')).toBeDisabled();
 	});

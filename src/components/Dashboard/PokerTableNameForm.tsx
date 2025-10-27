@@ -1,9 +1,13 @@
 import React from 'react';
 
-const PokerTableNameForm = ({ handlePokerTableSubmit }) => {
+interface PokerTableNameFormProps {
+    handlePokerTableSubmit: (name: string) => void;
+}
+
+const PokerTableNameForm = ({ handlePokerTableSubmit }: PokerTableNameFormProps) => {
     const [pokerTableName, setPokerTableName] = React.useState('');
-    const handleNewPokerTableName = (e) => setPokerTableName(e.target.value);
-    const handleSubmit = (e) => {
+    const handleNewPokerTableName = (e: React.ChangeEvent<HTMLInputElement>) => setPokerTableName(e.target.value);
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handlePokerTableSubmit(pokerTableName);
         setPokerTableName('');

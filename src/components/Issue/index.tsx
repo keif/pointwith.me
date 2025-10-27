@@ -9,34 +9,58 @@ import VotingBlock from './VotingBlock';
 import Controls from './Controls';
 import {formatEditHistory} from '@/utils/timeAgo';
 import {useInlineEdit} from '@/hooks/useInlineEdit';
+import type { ParticipantRole } from '@/types';
 
-const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => {
-	const {userId, tableId} = useParams();
+interface IssueParticipant {
+	id: string;
+	displayName: string;
+	role: ParticipantRole;
+}
+
+interface Vote {
+	userId: string;
+	vote: number | null;
+}
+
+interface IssueProps {
+	issue: string | boolean;
+	participants?: IssueParticipant[];
+	userRole?: ParticipantRole;
+	onToggleRole?: () => void;
+}
+
+const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}: IssueProps) => {
+	const {userId, tableId} = useParams<{ userId: string; tableId: string }>();
 	const currentUser = auth.auth.currentUser;
-	const isTableOwner = userId === currentUser.uid;
+	const isTableOwner = currentUser && userId === currentUser.uid;
 	const isSpectator = userRole === 'spectator';
 	const [issueState, setIssueState] = useState({
 		isLoaded: false,
 		isLocked: false,
 		showVotes: false,
 		title: '',
-		finalScore: null,
-		lastEdited: null,
-		lastEditedByName: null,
+		finalScore: null as number | null,
+		lastEdited: null as string | null,
+		lastEditedByName: null as string | null,
 	});
-	const [votesState, setVotesState] = useState({
+	const [votesState, setVotesState] = useState<{
+		isLoaded: boolean;
+		mostVotes: number;
+		userVote: number | null;
+		votes: Vote[];
+	}>({
 		isLoaded: false,
 		mostVotes: -1,
 		userVote: null,
 		votes: [],
 	});
 	const issueRef = db.pokerTableIssue(
-		userId,
-		tableId,
-		issue
+		userId!,
+		tableId!,
+		issue as string
 	);
 	const votesRef = db.votesRoot(
-		issue
+		issue as string
 	);
 
 	const {
@@ -50,6 +74,8 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 	} = useInlineEdit({
 		initialValue: issueState.title,
 		onSave: async (trimmedTitle) => {
+			if (!currentUser) return;
+
 			const updateData = {
 				title: trimmedTitle,
 				lastEdited: new Date().toISOString(),
@@ -98,7 +124,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 
 	const loadVotes = () => onValue(votesRef, snapshot => {
 		if (snapshot.exists()) {
-			const newVotesList = [];
+			const newVotesList: Vote[] = [];
 			const votes = snapshot.val() || {};
 			for (let vote in votes) {
 				newVotesList.push({
@@ -107,6 +133,8 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 				});
 			}
 			newVotesList.sort((v1, v2) => {
+				if (v1.vote === null) return 1;
+				if (v2.vote === null) return -1;
 				if (v1.vote > v2.vote) return 1;
 				if (v2.vote > v1.vote) return -1;
 				return 0;
@@ -114,13 +142,15 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 
 			// Get most votes
 			const voteTally = newVotesList.reduce((acc, curr) => {
-				if (curr.vote in acc) {
-					acc[curr.vote]++;
-				} else {
-					acc[curr.vote] = 1;
+				if (curr.vote !== null) {
+					if (curr.vote in acc) {
+						acc[curr.vote]++;
+					} else {
+						acc[curr.vote] = 1;
+					}
 				}
 				return acc;
-			}, {});
+			}, {} as Record<number, number>);
 
 			let mostVotes = -1;
 			let multipleModes = false;
@@ -138,13 +168,15 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 				mostVotes = -1;
 			}
 
-			const myVote =
-				newVotesList.find(v => v.userId === currentUser.uid);
+			const myVote = currentUser
+				? newVotesList.find(v => v.userId === currentUser.uid)
+				: undefined;
 			const newState = {
 				...votesState,
 				userVote: (myVote) ? myVote.vote : null,
 				votes: newVotesList.length ? newVotesList : [],
-				mostVotes
+				mostVotes,
+				isLoaded: true
 			};
 			// setState(newState);
 			setVotesState(newState);
@@ -152,27 +184,30 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 		// Note: No votes is expected for new issues - no need to log
 	});
 
-	const handleSelectVote = (userVote) => {
+	const handleSelectVote = (userVote: number | null) => {
+		if (!currentUser) return;
+
 		const previousVote = votesState.userVote;
 
 		// If clicking same vote, clear it
+		let newVote: number | null = userVote;
 		if (userVote === previousVote) {
-			userVote = null;
+			newVote = null;
 		}
 
 		// Optimistically update UI
 		setVotesState({
 			...votesState,
-			userVote
+			userVote: newVote
 		});
 
 		// Update Firebase
-		update(child(votesRef, currentUser.uid), {vote: userVote})
+		update(child(votesRef, currentUser.uid), {vote: newVote})
 			.then(() => {
-				if (userVote === null) {
+				if (newVote === null) {
 					toast.success('Vote cleared');
 				} else {
-					toast.success(`Voted: ${userVote}`);
+					toast.success(`Voted: ${newVote}`);
 				}
 			})
 			.catch((error) => {
@@ -285,7 +320,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 				<div className="mb-3">
 					<div className="flex items-center justify-center gap-2 flex-wrap">
 						{participantsWithVotes.map((participant) => {
-							const isCurrentUser = participant.id === currentUser.uid;
+							const isCurrentUser = currentUser && participant.id === currentUser.uid;
 							return (
 								<div
 									key={participant.id}
@@ -336,7 +371,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}) => 
 					{votesState.votes?.map((v) => {
 						const participant = participants.find(p => p.id === v.userId);
 						const voterName = participant?.displayName || 'Unknown';
-						const isCurrentUserVote = v.userId === currentUser.uid;
+						const isCurrentUserVote = currentUser && v.userId === currentUser.uid;
 
 						return (
 							<div

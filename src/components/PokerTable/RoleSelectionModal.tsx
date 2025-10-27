@@ -1,7 +1,12 @@
 import React from 'react';
 import {Eye, UserCheck} from 'lucide-react';
+import type { ParticipantRole } from '@/types';
 
-const RoleSelectionModal = ({onSelectRole}) => {
+interface RoleSelectionModalProps {
+	onSelectRole: (role: ParticipantRole) => void;
+}
+
+const RoleSelectionModal = ({onSelectRole}: RoleSelectionModalProps) => {
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
 			<div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">

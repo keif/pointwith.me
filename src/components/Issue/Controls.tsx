@@ -6,14 +6,27 @@ import {db} from '@/firebase';
 import {useParams} from 'react-router-dom';
 import {calculateAverage, calculateMode, calculateSuggestedScore} from '@/utils/voteCalculations';
 
-const Controls = ({isLocked, issue, showVotes, votes, finalScore}) => {
-	const {userId, tableId} = useParams();
+interface Vote {
+	userId: string;
+	vote: number | null;
+}
+
+interface ControlsProps {
+	isLocked: boolean;
+	issue: string | boolean;
+	showVotes: boolean;
+	votes: Vote[];
+	finalScore: number | null;
+}
+
+const Controls = ({isLocked, issue, showVotes, votes, finalScore}: ControlsProps) => {
+	const {userId, tableId} = useParams<{ userId: string; tableId: string }>();
 	const [customScore, setCustomScore] = useState('');
 
 	const issueRef = db.pokerTableIssue(
-		userId,
-		tableId,
-		issue
+		userId!,
+		tableId!,
+		issue as string
 	);
 
 	const handleShow = () => {
@@ -38,7 +51,7 @@ const Controls = ({isLocked, issue, showVotes, votes, finalScore}) => {
 			});
 	};
 
-	const handleSetFinalScore = (score) => {
+	const handleSetFinalScore = (score: number) => {
 		toast.promise(
 			update(issueRef, {'finalScore': score}),
 			{
