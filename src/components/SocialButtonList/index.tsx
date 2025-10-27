@@ -28,7 +28,7 @@ const buttonList = {
         provider: () => googleOAuth()
     },
     microsoft: {
-        visible: true,
+        visible: false, // Disabled until Azure AD setup is complete
         provider: () => azureOAuth()
     },
     twitter: {

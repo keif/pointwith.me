@@ -30,12 +30,13 @@ describe('SocialButtonList Component', () => {
     });
 
     test('renders visible buttons correctly', () => {
-        const {getByText} = render(<SocialButtonList currentUser={null}/>);
+        const {getByText, queryByText} = render(<SocialButtonList currentUser={null}/>);
 
 		expect(getByText(/github/i)).toBeInTheDocument()
 		expect(getByText(/google/i)).toBeInTheDocument()
-		expect(getByText(/microsoft/i)).toBeInTheDocument()
-        // Anonymous button is not visible
+		// Microsoft is currently disabled
+		expect(queryByText(/microsoft/i)).not.toBeInTheDocument()
+        // Twitter and Facebook buttons are not visible
     });
 
     test('button click initiates authentication', async () => {
