@@ -13,6 +13,7 @@ const About = lazy(() => import('@/components/About'));
 const Settings = lazy(() => import('@/components/Settings'));
 const Terms = lazy(() => import('@/components/Terms'));
 const Privacy = lazy(() => import('@/components/Privacy'));
+const JiraCallback = lazy(() => import('@/components/Settings/JiraCallback'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -80,6 +81,15 @@ const router = createBrowserRouter([
         element: (
             <Suspense fallback={<LoadingFallback/>}>
                 <Privacy/>
+            </Suspense>
+        ),
+        errorElement: <ErrorBoundary />
+    },
+    {
+        path: "/settings/jira/callback",
+        element: (
+            <Suspense fallback={<LoadingFallback/>}>
+                <JiraCallback/>
             </Suspense>
         ),
         errorElement: <ErrorBoundary />

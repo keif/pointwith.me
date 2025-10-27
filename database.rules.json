@@ -1,5 +1,38 @@
 {
   "rules": {
+    "users": {
+      "$userId": {
+        ".read": "$userId === auth.uid",
+        ".write": "$userId === auth.uid",
+        "jiraConfig": {
+          ".validate": "newData.hasChildren(['cloudId', 'accessToken', 'refreshToken', 'site', 'expiresAt', 'storyPointsFieldId', 'connectedAt'])",
+          "cloudId": {
+            ".validate": "newData.isString() && newData.val().length > 0"
+          },
+          "accessToken": {
+            ".validate": "newData.isString() && newData.val().length > 0"
+          },
+          "refreshToken": {
+            ".validate": "newData.isString() && newData.val().length > 0"
+          },
+          "site": {
+            ".validate": "newData.isString() && newData.val().length > 0"
+          },
+          "expiresAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "storyPointsFieldId": {
+            ".validate": "newData.isString()"
+          },
+          "connectedAt": {
+            ".validate": "newData.isString()"
+          },
+          "lastSyncedAt": {
+            ".validate": "newData.isString()"
+          }
+        }
+      }
+    },
     "pokerTables": {
       "$ownerId": {
         ".read": "auth != null",

@@ -22,7 +22,8 @@ const getJiraApiUrl = (cloudId: string): string => {
 };
 
 /**
- * Make an authenticated request to Jira API
+ * Make an authenticated request to Jira API via Netlify Function proxy
+ * This avoids CORS issues by making the request server-side
  */
 const makeJiraRequest = async <T>(
   cloudId: string,
@@ -30,38 +31,28 @@ const makeJiraRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const url = `${getJiraApiUrl(cloudId)}${endpoint}`;
-
-  const response = await fetch(url, {
-    ...options,
+  const response = await fetch('/.netlify/functions/jira-api-proxy', {
+    method: 'POST',
     headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/json',
       'Content-Type': 'application/json',
-      ...options.headers,
     },
+    body: JSON.stringify({
+      cloudId,
+      accessToken,
+      endpoint,
+      method: options.method || 'GET',
+      body: options.body ? JSON.parse(options.body as string) : undefined,
+    }),
   });
 
   if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
     const error: JiraApiError = {
       statusCode: response.status,
-      message: response.statusText,
+      message: errorData.error || response.statusText,
+      errors: errorData.details?.errors,
     };
-
-    try {
-      const errorData = await response.json();
-      error.message = errorData.errorMessages?.join(', ') || errorData.message || error.message;
-      error.errors = errorData.errors;
-    } catch {
-      // Use default error message
-    }
-
     throw error;
-  }
-
-  // Handle 204 No Content responses
-  if (response.status === 204) {
-    return {} as T;
   }
 
   return response.json();

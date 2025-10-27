@@ -108,35 +108,22 @@ export const initiateOAuthFlow = (): void => {
 
 /**
  * Exchange authorization code for access and refresh tokens
+ * Uses Netlify Function to keep client_secret secure
  */
 export const exchangeCodeForTokens = async (
   code: string
 ): Promise<JiraOAuthTokenResponse> => {
-  const clientId = import.meta.env.VITE_JIRA_CLIENT_ID;
-  const clientSecret = import.meta.env.VITE_JIRA_CLIENT_SECRET;
-  const redirectUri = import.meta.env.VITE_JIRA_REDIRECT_URI;
-
-  if (!clientId || !clientSecret || !redirectUri) {
-    throw new Error('Jira OAuth configuration missing.');
-  }
-
-  const response = await fetch(ATLASSIAN_TOKEN_URL, {
+  const response = await fetch('/.netlify/functions/jira-exchange-token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      grant_type: 'authorization_code',
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-      redirect_uri: redirectUri,
-    }),
+    body: JSON.stringify({ code }),
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(`Failed to exchange code for tokens: ${error.error_description || response.statusText}`);
+    throw new Error(`Failed to exchange code for tokens: ${error.error || response.statusText}`);
   }
 
   return response.json();
@@ -144,33 +131,22 @@ export const exchangeCodeForTokens = async (
 
 /**
  * Refresh an expired access token using refresh token
+ * Uses Netlify Function to keep client_secret secure
  */
 export const refreshAccessToken = async (
   refreshToken: string
 ): Promise<JiraOAuthTokenResponse> => {
-  const clientId = import.meta.env.VITE_JIRA_CLIENT_ID;
-  const clientSecret = import.meta.env.VITE_JIRA_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('Jira OAuth configuration missing.');
-  }
-
-  const response = await fetch(ATLASSIAN_TOKEN_URL, {
+  const response = await fetch('/.netlify/functions/jira-exchange-token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      grant_type: 'refresh_token',
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
-    }),
+    body: JSON.stringify({ refreshToken }),
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(`Failed to refresh access token: ${error.error_description || response.statusText}`);
+    throw new Error(`Failed to refresh access token: ${error.error || response.statusText}`);
   }
 
   return response.json();
@@ -178,19 +154,22 @@ export const refreshAccessToken = async (
 
 /**
  * Get accessible Jira sites/cloud IDs for the authenticated user
+ * Uses Netlify Function to avoid CORS issues
  */
 export const getAccessibleResources = async (
   accessToken: string
 ): Promise<JiraAccessibleResource[]> => {
-  const response = await fetch(ATLASSIAN_RESOURCES_URL, {
+  const response = await fetch('/.netlify/functions/jira-accessible-resources', {
+    method: 'POST',
     headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/json',
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({ accessToken }),
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to get accessible resources: ${response.statusText}`);
+    const error = await response.json().catch(() => ({}));
+    throw new Error(`Failed to get accessible resources: ${error.error || response.statusText}`);
   }
 
   return response.json();

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 
 import Layout from '@/containers/Layout';
 import withAuthentication from '@/containers/withAuthentication';
+import JiraSettings from './JiraSettings';
 
 const Settings = () => {
 	const [skipIssueConfirmation, setSkipIssueConfirmation] = useState(false);
@@ -60,6 +61,9 @@ const Settings = () => {
 					<SettingsIcon size={32} className="text-primary" />
 					<h1 className="text-3xl font-bold">Settings</h1>
 				</div>
+
+				{/* Jira Integration Section */}
+				<JiraSettings />
 
 				{/* Confirmation Preferences Section */}
 				<section className="card mb-6">
