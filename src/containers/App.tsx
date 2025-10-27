@@ -10,6 +10,8 @@ const Dashboard = lazy(() => import('@/components/Dashboard'));
 const PokerTable = lazy(() => import('@/components/PokerTable'));
 const About = lazy(() => import('@/components/About'));
 const Settings = lazy(() => import('@/components/Settings'));
+const Terms = lazy(() => import('@/components/Terms'));
+const Privacy = lazy(() => import('@/components/Privacy'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -52,6 +54,22 @@ const router = createBrowserRouter([
         element: (
             <Suspense fallback={<LoadingFallback/>}>
                 <Settings/>
+            </Suspense>
+        )
+    },
+    {
+        path: "/terms",
+        element: (
+            <Suspense fallback={<LoadingFallback/>}>
+                <Terms/>
+            </Suspense>
+        )
+    },
+    {
+        path: "/privacy",
+        element: (
+            <Suspense fallback={<LoadingFallback/>}>
+                <Privacy/>
             </Suspense>
         )
     },
