@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {format} from 'date-fns';
-import {X, Download} from 'lucide-react';
+import {X, Download, Info} from 'lucide-react';
 import {onValue, set} from 'firebase/database';
 import shortid from 'shortid';
 import toast from 'react-hot-toast';
@@ -52,8 +52,10 @@ const Dashboard = () => {
 
 		const uid = shortid.generate();
 		const pRef = db.pokerTable(currentUser.uid, uid);
+		const now = new Date().toISOString();
 		const data = {
-			created: new Date().toISOString(),
+			created: now,
+			lastActivity: now,
 			tableName: newPokerTableName,
 			ownerId: currentUser.uid,
 			ownerName: currentUser.displayName || 'Anonymous',
@@ -119,8 +121,10 @@ const Dashboard = () => {
 		const tableRef = db.pokerTable(currentUser.uid, tableId);
 
 		// Prepare table data
+		const now = new Date().toISOString();
 		const tableData = {
-			created: new Date().toISOString(),
+			created: now,
+			lastActivity: now,
 			tableName,
 			ownerId: currentUser.uid,
 			ownerName: currentUser.displayName || 'Anonymous',
@@ -185,6 +189,18 @@ const Dashboard = () => {
 	return (
 		<Layout data-testid={`Dashboard`}>
 			<div className="space-y-6">
+				{/* Data Retention Notice */}
+				<div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+					<Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+					<div className="flex-1">
+						<h3 className="font-semibold text-blue-900 mb-1">Data Retention Policy</h3>
+						<p className="text-sm text-blue-800">
+							Tables are automatically deleted after 90 days of inactivity to keep the platform efficient.
+							Make sure to use or revisit your tables regularly to keep them active.
+						</p>
+					</div>
+				</div>
+
 				{/* Create Table Form */}
 				<div className="card">
 					<PokerTableNameForm handlePokerTableSubmit={createPokerTable}/>

@@ -53,6 +53,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9.37.0",
     "eslint-plugin-react": "^7.37.5",
+    "firebase-admin": "^13.5.0",
     "jsdom": "^27.0.0",
     "netlify-cli": "^23.9.5",
     "postcss": "^8.5.6",

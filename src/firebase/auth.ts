@@ -1,5 +1,7 @@
 import {
     getAuth,
+    setPersistence,
+    browserSessionPersistence,
     GithubAuthProvider,
     TwitterAuthProvider,
     FacebookAuthProvider,
@@ -15,6 +17,12 @@ import app from './firebase';
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+
+// Set session persistence - auth state only persists for current browser session
+// This ensures users are logged out when they close the browser
+setPersistence(auth, browserSessionPersistence).catch((error) => {
+    console.error('Error setting auth persistence:', error);
+});
 
 export const githubOAuth = (): GithubAuthProvider => {
     return new GithubAuthProvider();

@@ -149,6 +149,10 @@ const PokerTable = () => {
 		};
 
 		set(currentParticipantRef, participantData)
+			.then(() => {
+				// Update table lastActivity when user joins
+				updateLastActivity();
+			})
 			.catch((error) => console.error('Error adding participant:', error));
 
 		// Remove on disconnect
@@ -502,6 +506,12 @@ const PokerTable = () => {
 		} else if (e.key === 'Escape') {
 			handleCancelEditIssue(e);
 		}
+	};
+
+	const updateLastActivity = () => {
+		update(pokerTableRef, {
+			lastActivity: new Date().toISOString()
+		}).catch((error) => console.error('Error updating lastActivity:', error));
 	};
 
 	const loadPokerTable = () => {
