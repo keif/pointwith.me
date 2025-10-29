@@ -1,7 +1,8 @@
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useEffect, useState} from 'react';
 import {User, Twitter, Github, Settings, ArrowLeft} from 'lucide-react';
 import {auth} from '@/firebase';
 import {useParams, Link} from 'react-router-dom';
+import type {User as FirebaseUser} from 'firebase/auth';
 
 interface LayoutProps {
 	children: ReactNode;
@@ -10,7 +11,15 @@ interface LayoutProps {
 
 const Layout = ({children, contentCenter = false}: LayoutProps) => {
 	const {userId} = useParams();
-	const currentUser = auth.auth.currentUser;
+	const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(auth.auth.currentUser);
+
+	useEffect(() => {
+		const unsubscribe = auth.auth.onAuthStateChanged((user) => {
+			setCurrentUser(user);
+		});
+		return () => unsubscribe();
+	}, []);
+
 	const isHost = userId === currentUser?.uid;
 	const userDisplay = userId
 		? `${currentUser?.displayName || ``} - ${isHost ? `HOST` : `ATTENDEE`}`
@@ -40,7 +49,7 @@ const Layout = ({children, contentCenter = false}: LayoutProps) => {
 							<div className="flex items-center gap-3">
 								<div className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 rounded-lg">
 									<User size={16} className="text-gray-300" />
-									<span className="text-sm font-medium hidden md:inline">{userDisplay}</span>
+									<span className="text-sm font-medium">{userDisplay}</span>
 								</div>
 								<Link
 									to="/settings"

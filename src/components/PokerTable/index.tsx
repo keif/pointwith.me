@@ -109,6 +109,15 @@ const PokerTable = () => {
 	useEffect(() => {
 		loadPokerTable();
 
+		// If current user is the host (table owner), automatically set them as voter
+		const isHost = currentUser && userId === currentUser.uid;
+		if (isHost) {
+			setUserRole('voter');
+			setShowRoleModal(false);
+			localStorage.setItem(`pokerRole_${tableId}`, 'voter');
+			return;
+		}
+
 		// Check localStorage for saved role preference for this table
 		const savedRole = localStorage.getItem(`pokerRole_${tableId}`);
 		if (savedRole === 'voter' || savedRole === 'spectator') {
