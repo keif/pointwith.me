@@ -231,7 +231,10 @@ const PokerTable = () => {
 				success: `Created: ${newIssueName}`,
 				error: 'Failed to create issue',
 			}
-		).then(() => loadPokerTable());
+		).then(() => {
+			updateLastActivity();
+			loadPokerTable();
+		});
 	};
 
 	const handleImportFromJira = (jiraIssues: JiraIssue[]) => {
@@ -259,7 +262,10 @@ const PokerTable = () => {
 				success: `Imported ${jiraIssues.length} ${jiraIssues.length === 1 ? 'issue' : 'issues'}`,
 				error: 'Failed to import issues',
 			}
-		).then(() => loadPokerTable());
+		).then(() => {
+			updateLastActivity();
+			loadPokerTable();
+		});
 	};
 
 	const handleBatchSyncToJira = async () => {
@@ -776,7 +782,7 @@ const PokerTable = () => {
 				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-8 overflow-y-auto">
 					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-8">
 						<div className="p-4">
-							<Issue issue={state.currentIssue} participants={state.participants as any} userRole={userRole ?? 'spectator'} onToggleRole={handleToggleRole} />
+							<Issue issue={state.currentIssue} participants={state.participants as any} userRole={userRole ?? 'spectator'} onToggleRole={handleToggleRole} onActivity={updateLastActivity} />
 						</div>
 						{currentUser && (userId === currentUser.uid) && (
 							<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />

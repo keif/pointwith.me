@@ -1,4 +1,3 @@
-import type { Config } from '@netlify/functions';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getDatabase } from 'firebase-admin/database';
 
@@ -96,9 +95,7 @@ export default async () => {
 	}
 };
 
-// Schedule: Run daily at 2:00 AM UTC
-// NOTE: Scheduled Functions require Netlify Pro plan or higher
-// Alternatively, you can trigger this manually via POST request
-export const config: Config = {
-	schedule: '@daily',
-};
+// Manual Trigger Configuration
+// This function can be triggered via POST request from an external cron service
+// No Netlify Pro plan required!
+// See CLEANUP_SETUP.md for instructions on setting up a free cron service

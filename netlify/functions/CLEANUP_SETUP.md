@@ -57,25 +57,53 @@ FIREBASE_SERVICE_ACCOUNT='{
 - Keep this secret and never commit it to your repository
 - Add it via Netlify UI: Site Settings → Environment Variables
 
-### 3. Netlify Plan Requirements
+### 3. Set Up External Cron Service (Free!)
 
-⚠️ **Scheduled Functions require a Netlify Pro plan or higher.**
+This function uses manual triggers instead of Netlify's built-in scheduler, so **no paid plan required**!
 
-If you're on a free plan, you have two options:
-
-#### Option A: Manual Trigger (Free Plan)
-You can trigger the cleanup manually by making a POST request:
+Trigger the cleanup by making a POST request:
 ```bash
 curl -X POST https://your-site.netlify.app/.netlify/functions/cleanup-old-tables
 ```
 
-Set up a cron job on your local machine or use a free service like:
-- [cron-job.org](https://cron-job.org)
-- [EasyCron](https://www.easycron.com)
-- [GitHub Actions](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule)
+#### Recommended Free Cron Services:
 
-#### Option B: Upgrade to Netlify Pro
-Enable scheduled functions by upgrading your plan.
+**Option A: cron-job.org** (Recommended - Easiest)
+1. Go to [cron-job.org](https://cron-job.org) and create a free account
+2. Create a new cron job:
+   - **URL**: `https://your-site.netlify.app/.netlify/functions/cleanup-old-tables`
+   - **HTTP Method**: POST
+   - **Schedule**: Daily at 2:00 AM (or your preferred time)
+3. Save and enable the job
+
+**Option B: GitHub Actions** (If you want control in your repo)
+Create `.github/workflows/cleanup-tables.yml`:
+```yaml
+name: Cleanup Old Tables
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2:00 AM UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cleanup Function
+        run: |
+          curl -X POST https://your-site.netlify.app/.netlify/functions/cleanup-old-tables
+```
+
+**Option C: EasyCron**
+1. Go to [EasyCron](https://www.easycron.com) and create account
+2. Add cron job with URL above
+3. Set schedule (daily recommended)
+
+**Option D: Your Own Server**
+Add to your crontab:
+```bash
+0 2 * * * curl -X POST https://your-site.netlify.app/.netlify/functions/cleanup-old-tables
+```
 
 ## Testing
 
@@ -125,23 +153,22 @@ const RETENTION_DAYS = 90; // Change this value
 
 ### Change Schedule
 
-Edit the `config.schedule` in `cleanup-old-tables.ts`:
+Update your external cron service schedule:
+- **cron-job.org**: Edit the job schedule in your dashboard
+- **GitHub Actions**: Update the cron expression in `.github/workflows/cleanup-tables.yml`
+- **Your server**: Update your crontab schedule
 
-```typescript
-export const config: Config = {
-  schedule: '@daily',    // Options: @hourly, @daily, @weekly, @monthly
-  // OR use cron syntax:
-  // schedule: '0 2 * * *'  // 2:00 AM UTC daily
-};
-```
+### Activity Tracking (Already Implemented)
 
-### Add More Activity Triggers
+The following user actions automatically update `lastActivity`:
+- ✅ Table creation
+- ✅ User joins table
+- ✅ Issue creation
+- ✅ Jira issue import
+- ✅ Voting on issues
+- ✅ Editing issue titles
 
-Update `lastActivity` in more places by adding `updateLastActivity()` calls:
-- When issues are created
-- When votes are cast
-- When issues are edited
-- etc.
+To add more triggers, call `updateLastActivity()` in the PokerTable component.
 
 ## Troubleshooting
 

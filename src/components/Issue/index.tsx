@@ -27,9 +27,10 @@ interface IssueProps {
 	participants?: IssueParticipant[];
 	userRole?: ParticipantRole;
 	onToggleRole?: () => void;
+	onActivity?: () => void;
 }
 
-const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}: IssueProps) => {
+const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onActivity}: IssueProps) => {
 	const {userId, tableId} = useParams<{ userId: string; tableId: string }>();
 	const currentUser = auth.auth.currentUser;
 	const isTableOwner = currentUser && userId === currentUser.uid;
@@ -91,6 +92,8 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}: Iss
 					error: 'Failed to update issue title',
 				}
 			);
+			// Update table activity
+			onActivity?.();
 		},
 		maxLength: 200,
 		emptyErrorMessage: 'Issue title cannot be empty',
@@ -209,6 +212,8 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole}: Iss
 				} else {
 					toast.success(`Voted: ${newVote}`);
 				}
+				// Update table activity
+				onActivity?.();
 			})
 			.catch((error) => {
 				// Revert on error

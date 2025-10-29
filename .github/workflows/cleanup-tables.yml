@@ -1,0 +1,29 @@
+name: Cleanup Old Tables
+
+# Trigger daily at 2:00 AM UTC
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cleanup Function
+        run: |
+          echo "🧹 Triggering table cleanup function..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://pointpal.app/.netlify/functions/cleanup-old-tables)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Cleanup completed successfully"
+            exit 0
+          else
+            echo "❌ Cleanup failed with HTTP code: $HTTP_CODE"
+            exit 1
+          fi
