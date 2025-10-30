@@ -50,6 +50,11 @@ interface TableParticipant {
   role: ParticipantRole;
 }
 
+interface PokerTableVotingScale {
+  type: 'fibonacci' | 'tshirt' | 'powers-of-2' | 'linear' | 'custom';
+  customValues?: string;
+}
+
 interface PokerTableState {
   pokerTable: {
     tableName?: string;
@@ -60,6 +65,11 @@ interface PokerTableState {
     currentIssue?: string | boolean;
     issueModal?: boolean;
     issues?: Record<string, PokerTableIssue>;
+    votingScale?: PokerTableVotingScale;
+    timerSettings?: {
+      enabled: boolean;
+      duration: number;
+    };
   };
   issuesClient: null;
   issues: PokerTableIssue[];
@@ -562,6 +572,8 @@ const PokerTable = () => {
 						created={state.pokerTable.created}
 						lastEdited={state.pokerTable.lastEdited}
 						lastEditedByName={state.pokerTable.lastEditedByName}
+						votingScale={state.pokerTable.votingScale}
+						timerSettings={state.pokerTable.timerSettings}
 					/>
 
 				{/* Import from Jira Button */}
@@ -782,7 +794,14 @@ const PokerTable = () => {
 				<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-8 overflow-y-auto">
 					<div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 mb-8">
 						<div className="p-4">
-							<Issue issue={state.currentIssue} participants={state.participants as any} userRole={userRole ?? 'spectator'} onToggleRole={handleToggleRole} onActivity={updateLastActivity} />
+							<Issue
+								issue={state.currentIssue}
+								participants={state.participants as any}
+								userRole={userRole ?? 'spectator'}
+								onToggleRole={handleToggleRole}
+								onActivity={updateLastActivity}
+								votingScale={state.pokerTable.votingScale}
+							/>
 						</div>
 						{currentUser && (userId === currentUser.uid) && (
 							<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />

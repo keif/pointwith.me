@@ -22,15 +22,21 @@ interface Vote {
 	vote: number | null;
 }
 
+interface VotingScale {
+	type: 'fibonacci' | 'tshirt' | 'powers-of-2' | 'linear' | 'custom';
+	customValues?: string;
+}
+
 interface IssueProps {
 	issue: string | boolean;
 	participants?: IssueParticipant[];
 	userRole?: ParticipantRole;
 	onToggleRole?: () => void;
 	onActivity?: () => void;
+	votingScale?: VotingScale;
 }
 
-const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onActivity}: IssueProps) => {
+const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onActivity, votingScale}: IssueProps) => {
 	const {userId, tableId} = useParams<{ userId: string; tableId: string }>();
 	const currentUser = auth.auth.currentUser;
 	const isTableOwner = currentUser && userId === currentUser.uid;
@@ -127,6 +133,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 
 	const loadVotes = () => onValue(votesRef, snapshot => {
 		if (snapshot.exists()) {
+			const ABSTAIN_VALUE = -1;
 			const newVotesList: Vote[] = [];
 			const votes = snapshot.val() || {};
 			for (let vote in votes) {
@@ -136,6 +143,9 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 				});
 			}
 			newVotesList.sort((v1, v2) => {
+				// Abstentions go to the end
+				if (v1.vote === ABSTAIN_VALUE) return 1;
+				if (v2.vote === ABSTAIN_VALUE) return -1;
 				if (v1.vote === null) return 1;
 				if (v2.vote === null) return -1;
 				if (v1.vote > v2.vote) return 1;
@@ -143,9 +153,9 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 				return 0;
 			});
 
-			// Get most votes
+			// Get most votes (excluding abstentions)
 			const voteTally = newVotesList.reduce((acc, curr) => {
-				if (curr.vote !== null) {
+				if (curr.vote !== null && curr.vote !== ABSTAIN_VALUE) {
 					if (curr.vote in acc) {
 						acc[curr.vote]++;
 					} else {
@@ -191,6 +201,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 		if (!currentUser) return;
 
 		const previousVote = votesState.userVote;
+		const ABSTAIN_VALUE = -1;
 
 		// If clicking same vote, clear it
 		let newVote: number | null = userVote;
@@ -209,6 +220,8 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 			.then(() => {
 				if (newVote === null) {
 					toast.success('Vote cleared');
+				} else if (newVote === ABSTAIN_VALUE) {
+					toast.success('Abstained from voting');
 				} else {
 					toast.success(`Voted: ${newVote}`);
 				}
@@ -377,15 +390,19 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 						const participant = participants.find(p => p.id === v.userId);
 						const voterName = participant?.displayName || 'Unknown';
 						const isCurrentUserVote = currentUser && v.userId === currentUser.uid;
+						const ABSTAIN_VALUE = -1;
+						const isAbstain = v.vote === ABSTAIN_VALUE;
 
 						return (
 							<div
 								key={v.userId}
 								className={`
 									flex flex-col items-center justify-center p-2 rounded-lg gap-1
-									${(votesState.mostVotes === v.vote && issueState.showVotes)
-										? 'bg-success text-white border-2 border-success'
-										: 'bg-primary text-white border-2 border-primary'}
+									${isAbstain
+										? 'bg-gray-400 text-white border-2 border-gray-500'
+										: (votesState.mostVotes === v.vote && issueState.showVotes)
+											? 'bg-success text-white border-2 border-success'
+											: 'bg-primary text-white border-2 border-primary'}
 									${isCurrentUserVote ? 'ring-2 ring-offset-2 ring-primary' : ''}
 								`}
 							>
@@ -397,7 +414,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 									{isCurrentUserVote && ' (You)'}
 								</div>
 								<div className="text-2xl font-bold">
-									{(issueState.showVotes) ? v.vote : '?'}
+									{isAbstain ? '?' : (issueState.showVotes) ? v.vote : '?'}
 								</div>
 							</div>
 						);
@@ -409,6 +426,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 					isLocked={issueState.isLocked}
 					onClick={handleSelectVote}
 					userVote={votesState.userVote}
+					votingScale={votingScale}
 				/>
 			)}
 			{isSpectator && !issueState.isLocked && (

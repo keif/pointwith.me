@@ -72,26 +72,30 @@ const cleanupOldTables = async () => {
 	return { deleted: deletedCount, cutoffDate: cutoffISO };
 };
 
-// Netlify function handler
+// Netlify function handler (Netlify Functions 2.0 format)
 export default async () => {
 	try {
 		const result = await cleanupOldTables();
-		return {
-			statusCode: 200,
-			body: JSON.stringify({
-				message: 'Cleanup completed successfully',
-				...result,
-			}),
-		};
+		return new Response(JSON.stringify({
+			message: 'Cleanup completed successfully',
+			...result,
+		}), {
+			status: 200,
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
 	} catch (error) {
 		console.error('Error during cleanup:', error);
-		return {
-			statusCode: 500,
-			body: JSON.stringify({
-				message: 'Cleanup failed',
-				error: error instanceof Error ? error.message : 'Unknown error',
-			}),
-		};
+		return new Response(JSON.stringify({
+			message: 'Cleanup failed',
+			error: error instanceof Error ? error.message : 'Unknown error',
+		}), {
+			status: 500,
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
 	}
 };
 

@@ -59,6 +59,14 @@ const Dashboard = () => {
 			tableName: newPokerTableName,
 			ownerId: currentUser.uid,
 			ownerName: currentUser.displayName || 'Anonymous',
+			votingScale: {
+				type: 'fibonacci',
+				customValues: ''
+			},
+			timerSettings: {
+				enabled: false,
+				duration: 60
+			},
 		};
 		set(pRef, data)
 			.then(() => console.log('Updated successfully'))
@@ -128,6 +136,14 @@ const Dashboard = () => {
 			tableName,
 			ownerId: currentUser.uid,
 			ownerName: currentUser.displayName || 'Anonymous',
+			votingScale: {
+				type: 'fibonacci',
+				customValues: ''
+			},
+			timerSettings: {
+				enabled: false,
+				duration: 60
+			},
 		};
 
 		// Prepare issues data

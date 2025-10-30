@@ -1,15 +1,22 @@
 import { roundUpToPrime } from './primes';
 import type { Vote } from '@/types';
 
+const ABSTAIN_VALUE = -1;
+
 /**
- * Calculate the average of all votes
+ * Calculate the average of all votes (excluding abstentions)
  * @param votes - Array of vote objects with {vote: number}
  * @returns The average vote value
  */
 export const calculateAverage = (votes: Vote[]): number => {
     if (!votes || votes.length === 0) return 0;
 
-    const validVotes = votes.filter(v => v.vote !== null && v.vote !== undefined && !isNaN(v.vote));
+    const validVotes = votes.filter(v =>
+        v.vote !== null &&
+        v.vote !== undefined &&
+        v.vote !== ABSTAIN_VALUE &&
+        !isNaN(v.vote)
+    );
 
     if (validVotes.length === 0) return 0;
 
@@ -29,22 +36,31 @@ export const calculateSuggestedScore = (votes: Vote[]): number => {
 };
 
 /**
- * Find the mode (most common vote value)
+ * Find the mode (most common vote value, excluding abstentions)
  * @param votes - Array of vote objects
  * @returns The mode value, or null if multiple modes or no votes
  */
 export const calculateMode = (votes: Vote[]): number | null => {
     if (!votes || votes.length === 0) return null;
 
-    const voteTally = votes.reduce((acc, curr) => {
-        const vote = curr.vote ?? 'null';
+    // Filter out abstentions and null votes
+    const validVotes = votes.filter(v =>
+        v.vote !== null &&
+        v.vote !== undefined &&
+        v.vote !== ABSTAIN_VALUE
+    );
+
+    if (validVotes.length === 0) return null;
+
+    const voteTally = validVotes.reduce((acc, curr) => {
+        const vote = curr.vote!;
         if (vote in acc) {
             acc[vote]++;
         } else {
             acc[vote] = 1;
         }
         return acc;
-    }, {} as Record<string | number, number>);
+    }, {} as Record<number, number>);
 
     let mostVotes = -1;
     let multipleModes = false;

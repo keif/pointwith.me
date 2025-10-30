@@ -1,5 +1,7 @@
 import {Home, Edit2, Check, X} from 'lucide-react';
 import IssueNameForm from './IssueNameForm';
+import VotingScaleSelector from './VotingScaleSelector';
+import TimerSettings from './TimerSettings';
 import React from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {auth, db} from '@/firebase';
@@ -8,6 +10,7 @@ import {format} from 'date-fns';
 import toast from 'react-hot-toast';
 import {formatEditHistory} from '@/utils/timeAgo';
 import {useInlineEdit} from '@/hooks/useInlineEdit';
+import type {VotingScaleType} from '@/utils/votingScales';
 
 interface IssueCreatorProps {
     onClick: (issueName: string) => void;
@@ -16,9 +19,17 @@ interface IssueCreatorProps {
     created?: string;
     lastEdited?: string;
     lastEditedByName?: string;
+    votingScale?: {
+        type: VotingScaleType;
+        customValues?: string;
+    };
+    timerSettings?: {
+        enabled: boolean;
+        duration: number;
+    };
 }
 
-const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastEditedByName}: IssueCreatorProps) => {
+const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastEditedByName, votingScale, timerSettings}: IssueCreatorProps) => {
     const navigate = useNavigate();
     const {userId, tableId} = useParams<{ userId: string; tableId: string }>();
     const currentUser = auth.auth.currentUser;
@@ -159,6 +170,23 @@ const IssueCreator = ({onClick, tableName, ownerName, created, lastEdited, lastE
                 <Home size={16} />
                 Return to Lobby
             </button>
+
+            {/* Voting Scale Selector */}
+            <div className="mb-4">
+                <VotingScaleSelector
+                    currentScale={votingScale}
+                    tableRef={db.pokerTable(userId!, tableId!)}
+                />
+            </div>
+
+            {/* Timer Settings */}
+            <div className="mb-4">
+                <TimerSettings
+                    currentSettings={timerSettings}
+                    tableRef={db.pokerTable(userId!, tableId!)}
+                />
+            </div>
+
             <p className="text-gray-600 mb-4">
                 Copy this table's URL to share with your team for a pointing session
             </p>
