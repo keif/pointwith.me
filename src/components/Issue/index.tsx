@@ -415,7 +415,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 									{isCurrentUserVote && ' (You)'}
 								</div>
 								<div className="text-2xl font-bold">
-									{isAbstain ? '?' : (issueState.showVotes) ? v.vote : '?'}
+									{isAbstain ? '☕' : (issueState.showVotes) ? v.vote : '?'}
 								</div>
 							</div>
 						);

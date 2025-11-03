@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {HelpCircle} from 'lucide-react';
+import {Coffee} from 'lucide-react';
 import {getScaleValues, getDefaultScale, voteToNumber} from '@/utils/votingScales';
 import type {VotingScale} from '@/utils/votingScales';
 
@@ -129,7 +129,7 @@ const VotingBlock = ({onClick, isLocked, userVote, isHost = false, votingScale}:
 					`}
 					title="Abstain / Pass"
 				>
-					<HelpCircle size={24} />
+					<Coffee size={24} />
 					{/* Keyboard hint badge */}
 					{!isLocked && (
 						<span className="absolute top-0.5 right-0.5 bg-black bg-opacity-60 text-white text-[10px] font-semibold rounded px-1 leading-tight">
