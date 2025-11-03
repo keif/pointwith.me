@@ -218,12 +218,15 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 		// Update Firebase
 		update(child(votesRef, currentUser.uid), {vote: newVote})
 			.then(() => {
-				if (newVote === null) {
-					toast.success('Vote cleared');
-				} else if (newVote === ABSTAIN_VALUE) {
-					toast.success('Abstained from voting');
-				} else {
-					toast.success(`Voted: ${newVote}`);
+				// Don't show toast for host to prevent revealing vote on screen share
+				if (!isTableOwner) {
+					if (newVote === null) {
+						toast.success('Vote cleared');
+					} else if (newVote === ABSTAIN_VALUE) {
+						toast.success('Abstained from voting');
+					} else {
+						toast.success(`Voted: ${newVote}`);
+					}
 				}
 				// Update table activity
 				onActivity?.();
@@ -398,11 +401,9 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 								key={v.userId}
 								className={`
 									flex flex-col items-center justify-center p-2 rounded-lg gap-1
-									${isAbstain
-										? 'bg-gray-400 text-white border-2 border-gray-500'
-										: (votesState.mostVotes === v.vote && issueState.showVotes)
-											? 'bg-success text-white border-2 border-success'
-											: 'bg-primary text-white border-2 border-primary'}
+									${(votesState.mostVotes === v.vote && issueState.showVotes && !isAbstain)
+										? 'bg-success text-white border-2 border-success'
+										: 'bg-primary text-white border-2 border-primary'}
 									${isCurrentUserVote ? 'ring-2 ring-offset-2 ring-primary' : ''}
 								`}
 							>
@@ -426,6 +427,7 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 					isLocked={issueState.isLocked}
 					onClick={handleSelectVote}
 					userVote={votesState.userVote}
+					isHost={isTableOwner}
 					votingScale={votingScale}
 				/>
 			)}

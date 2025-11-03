@@ -141,7 +141,7 @@
           ".write": "$userId === auth.uid",
           ".validate": "newData.hasChildren(['vote'])",
           "vote": {
-            ".validate": "(newData.isNumber() && newData.val() >= 0) || newData.val() === null"
+            ".validate": "(newData.isNumber() && newData.val() >= -1) || newData.val() === null"
           },
           "$other": {
             ".validate": false
