@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {format} from 'date-fns';
 import {X, Download, Info, Zap} from 'lucide-react';
-import {onValue, set} from 'firebase/database';
+import {onValue, set, update} from 'firebase/database';
 import shortid from 'shortid';
 import toast from 'react-hot-toast';
 
@@ -65,10 +65,11 @@ const Dashboard = () => {
 			},
 			timerSettings: {
 				enabled: false,
-				duration: 60
+				duration: 60,
+				onExpire: 'justStop'
 			},
 		};
-		set(pRef, data)
+		update(pRef, data)
 			.then(() => console.log('Updated successfully'))
 			.catch((error) => console.log('Error updating document: ', error));
 		loadPokerTables();
@@ -142,7 +143,8 @@ const Dashboard = () => {
 			},
 			timerSettings: {
 				enabled: false,
-				duration: 60
+				duration: 60,
+				onExpire: 'justStop'
 			},
 		};
 
@@ -163,7 +165,7 @@ const Dashboard = () => {
 		});
 
 		// Create table with issues
-		set(tableRef, {
+		update(tableRef, {
 			...tableData,
 			issues: issuesData,
 		})

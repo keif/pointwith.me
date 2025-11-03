@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version:*)",
+      "Bash(pnpm build:*)",
+      "Bash(find:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm test:*)",
+      "Bash(npx tsc:*)",
+      "Bash(xargs ls:*)",
+      "Bash(cat:*)",
+      "Bash(npm run test:*)",
+      "Bash(open build/stats.html)",
+      "Bash(mkdir:*)",
+      "Read(//private/var/folders/0v/pq945skx4h558ccmcfpgx29m0000gn/T/**)",
+      "Read(//dev/**)",
+      "Bash(git log:*)",
+      "Bash(pnpm test:rules:*)",
+      "Bash(export PATH=\"/opt/homebrew/opt/openjdk@11/bin:$PATH\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

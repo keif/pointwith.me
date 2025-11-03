@@ -1,0 +1,110 @@
+{
+    "version": "1.0",
+    "description": "Skill activation triggers for pointwith.me - A React/Vite/Firebase story pointing application",
+    "skills": {
+        "skill-developer": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Meta-skill for creating and managing Claude Code skills",
+            "promptTriggers": {
+                "keywords": [
+                    "skill system",
+                    "create skill",
+                    "add skill",
+                    "skill triggers",
+                    "skill rules",
+                    "hook system",
+                    "skill development",
+                    "skill-rules.json"
+                ],
+                "intentPatterns": [
+                    "(how do|how does|explain).*?skill",
+                    "(create|add|modify|build).*?skill",
+                    "skill.*?(work|trigger|activate|system)"
+                ]
+            }
+        },
+        "frontend-dev-guidelines": {
+            "type": "guardrail",
+            "enforcement": "block",
+            "priority": "high",
+            "description": "React/TypeScript best practices for pointwith.me",
+            "promptTriggers": {
+                "keywords": [
+                    "component",
+                    "react component",
+                    "UI",
+                    "interface",
+                    "page",
+                    "modal",
+                    "dialog",
+                    "form",
+                    "styling",
+                    "frontend",
+                    "React",
+                    "firebase",
+                    "realtime database"
+                ],
+                "intentPatterns": [
+                    "(create|add|make|build|update|modify|edit).*?(component|UI|page|modal|dialog|form)",
+                    "(how to|best practice).*?(component|react)",
+                    "(style|design|layout).*?(component|UI)",
+                    "(implement|add|create).*?(firebase|realtime|database)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "src/**/*.tsx",
+                    "src/**/*.ts"
+                ],
+                "pathExclusions": [
+                    "**/*.test.tsx",
+                    "**/*.test.ts",
+                    "**/*.spec.tsx",
+                    "**/*.spec.ts",
+                    "**/vite.config.ts",
+                    "**/vitest.config.ts",
+                    "**/tsconfig.json",
+                    "**/tsconfig.node.json"
+                ],
+                "contentPatterns": [
+                    "import.*React",
+                    "export.*function.*\\(",
+                    "const.*=.*\\(.*\\).*=>",
+                    "useState",
+                    "useEffect",
+                    "firebase",
+                    "getDatabase",
+                    "ref\\(db"
+                ]
+            },
+            "blockMessage": "⚠️ BLOCKED - Frontend Best Practices Required\n\n📋 REQUIRED ACTION:\n1. Use Skill tool: 'frontend-dev-guidelines'\n2. Review React/TypeScript best practices\n3. Check proper component patterns\n4. Use proper styling patterns\n5. Then retry this edit\n\nReason: Enforce React best practices for pointwith.me\nFile: {file_path}\n\n💡 TIP: Add '// @skip-validation' comment to skip future checks",
+            "skipConditions": {
+                "sessionSkillUsed": true,
+                "fileMarkers": [
+                    "@skip-validation"
+                ],
+                "envOverride": "SKIP_FRONTEND_GUIDELINES"
+            }
+        }
+    },
+    "notes": {
+        "enforcement_types": {
+            "suggest": "Skill suggestion appears but doesn't block execution",
+            "block": "Requires skill to be used before proceeding (guardrail)",
+            "warn": "Shows warning but allows proceeding"
+        },
+        "priority_levels": {
+            "critical": "Highest - Always trigger when matched",
+            "high": "Important - Trigger for most matches",
+            "medium": "Moderate - Trigger for clear matches",
+            "low": "Optional - Trigger only for explicit matches"
+        },
+        "customization": {
+            "pathPatterns": "Configured for pointwith.me src/ structure",
+            "keywords": "Focused on React, TypeScript, and Firebase patterns",
+            "intentPatterns": "Use regex for flexible user intent matching"
+        }
+    }
+}

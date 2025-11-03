@@ -39,6 +39,11 @@ interface PokerTableIssue {
   jiraKey?: string;
   jiraId?: string;
   jiraUrl?: string;
+  timer?: {
+    isActive: boolean;
+    startedAt?: string;
+    remainingSeconds?: number;
+  };
 }
 
 interface TableParticipant {
@@ -69,6 +74,7 @@ interface PokerTableState {
     timerSettings?: {
       enabled: boolean;
       duration: number;
+      onExpire?: 'justStop' | 'lockVoting' | 'autoReveal';
     };
   };
   issuesClient: null;
@@ -801,6 +807,7 @@ const PokerTable = () => {
 								onToggleRole={handleToggleRole}
 								onActivity={updateLastActivity}
 								votingScale={state.pokerTable.votingScale}
+								timerSettings={state.pokerTable.timerSettings}
 							/>
 						</div>
 						{currentUser && (userId === currentUser.uid) && (

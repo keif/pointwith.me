@@ -7,6 +7,7 @@ interface TimerSettingsProps {
 	currentSettings?: {
 		enabled: boolean;
 		duration: number; // in seconds
+		onExpire?: 'justStop' | 'lockVoting' | 'autoReveal';
 	};
 	tableRef: any; // Firebase reference
 }
@@ -23,11 +24,15 @@ const TimerSettings: React.FC<TimerSettingsProps> = ({currentSettings, tableRef}
 	const [isEditing, setIsEditing] = useState(false);
 	const [enabled, setEnabled] = useState(currentSettings?.enabled || false);
 	const [duration, setDuration] = useState(currentSettings?.duration || 60);
+	const [onExpire, setOnExpire] = useState<'justStop' | 'lockVoting' | 'autoReveal'>(
+		currentSettings?.onExpire || 'justStop'
+	);
 
 	const handleSave = async () => {
 		const timerData = {
 			enabled,
 			duration,
+			onExpire,
 		};
 
 		try {
@@ -42,6 +47,7 @@ const TimerSettings: React.FC<TimerSettingsProps> = ({currentSettings, tableRef}
 	const handleCancel = () => {
 		setEnabled(currentSettings?.enabled || false);
 		setDuration(currentSettings?.duration || 60);
+		setOnExpire(currentSettings?.onExpire || 'justStop');
 		setIsEditing(false);
 	};
 
@@ -121,6 +127,50 @@ const TimerSettings: React.FC<TimerSettingsProps> = ({currentSettings, tableRef}
 								onChange={(e) => setDuration(parseInt(e.target.value) || 60)}
 								className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
 							/>
+						</div>
+					</div>
+				)}
+
+				{/* Expiration Behavior */}
+				{enabled && (
+					<div>
+						<label className="block text-xs text-gray-600 mb-2">
+							When timer expires:
+						</label>
+						<div className="space-y-2">
+							<label className="flex items-center gap-2 cursor-pointer">
+								<input
+									type="radio"
+									name="onExpire"
+									value="justStop"
+									checked={onExpire === 'justStop'}
+									onChange={(e) => setOnExpire(e.target.value as any)}
+									className="w-4 h-4"
+								/>
+								<span className="text-sm">Just stop timer (host still controls reveal/lock)</span>
+							</label>
+							<label className="flex items-center gap-2 cursor-pointer">
+								<input
+									type="radio"
+									name="onExpire"
+									value="lockVoting"
+									checked={onExpire === 'lockVoting'}
+									onChange={(e) => setOnExpire(e.target.value as any)}
+									className="w-4 h-4"
+								/>
+								<span className="text-sm">Lock voting (prevent new/changed votes)</span>
+							</label>
+							<label className="flex items-center gap-2 cursor-pointer">
+								<input
+									type="radio"
+									name="onExpire"
+									value="autoReveal"
+									checked={onExpire === 'autoReveal'}
+									onChange={(e) => setOnExpire(e.target.value as any)}
+									className="w-4 h-4"
+								/>
+								<span className="text-sm">Auto-reveal all votes</span>
+							</label>
 						</div>
 					</div>
 				)}

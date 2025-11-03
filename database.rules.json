@@ -37,32 +37,48 @@
       "$ownerId": {
         ".read": "auth != null",
         "$tableId": {
-          ".write": "auth != null",
           "created": {
-            ".validate": "newData.isString() && newData.val().length > 0 && $ownerId === auth.uid"
+            ".write": "$ownerId === auth.uid",
+            ".validate": "newData.isString() && newData.val().length > 0"
           },
           "tableName": {
-            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && $ownerId === auth.uid"
+            ".write": "$ownerId === auth.uid",
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
           },
           "ownerId": {
-            ".validate": "newData.val() === $ownerId && $ownerId === auth.uid"
+            ".write": "$ownerId === auth.uid",
+            ".validate": "newData.val() === $ownerId"
           },
           "ownerName": {
-            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && $ownerId === auth.uid"
+            ".write": "$ownerId === auth.uid",
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
           },
           "lastEdited": {
+            ".write": "auth != null",
             ".validate": "newData.isString()"
           },
           "lastEditedBy": {
+            ".write": "auth != null",
             ".validate": "newData.isString()"
           },
           "lastEditedByName": {
+            ".write": "auth != null",
             ".validate": "newData.isString() && newData.val().length <= 100"
           },
+          "lastActivity": {
+            ".write": "auth != null",
+            ".validate": "newData.isString()"
+          },
           "currentIssue": {
+            ".write": "$ownerId === auth.uid",
             ".validate": "newData.isString() || newData.isBoolean()"
           },
+          "issueModal": {
+            ".write": "$ownerId === auth.uid",
+            ".validate": "newData.isBoolean()"
+          },
           "issues": {
+            ".write": "auth != null",
             "$issueId": {
               ".validate": "newData.hasChildren(['title', 'created'])",
               "title": {
@@ -98,6 +114,17 @@
               "jiraUrl": {
                 ".validate": "newData.isString() && newData.val().length > 0"
               },
+              "timer": {
+                "isActive": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "startedAt": {
+                  ".validate": "newData.isString() || newData.val() === null"
+                },
+                "remainingSeconds": {
+                  ".validate": "newData.isNumber() || newData.val() === null"
+                }
+              },
               "$other": {
                 ".validate": false
               }
@@ -126,6 +153,27 @@
               "$other": {
                 ".validate": false
               }
+            }
+          },
+          "votingScale": {
+            ".write": "$ownerId === auth.uid",
+            "type": {
+              ".validate": "newData.isString() && (newData.val() === 'fibonacci' || newData.val() === 'tshirt' || newData.val() === 'powers-of-2' || newData.val() === 'linear' || newData.val() === 'custom')"
+            },
+            "customValues": {
+              ".validate": "newData.isString()"
+            }
+          },
+          "timerSettings": {
+            ".write": "$ownerId === auth.uid",
+            "enabled": {
+              ".validate": "newData.isBoolean()"
+            },
+            "duration": {
+              ".validate": "newData.isNumber() && newData.val() >= 10 && newData.val() <= 600"
+            },
+            "onExpire": {
+              ".validate": "newData.isString() && (newData.val() === 'justStop' || newData.val() === 'lockVoting' || newData.val() === 'autoReveal')"
             }
           },
           "$other": {

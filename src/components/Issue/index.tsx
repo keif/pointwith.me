@@ -7,6 +7,7 @@ import {useParams} from 'react-router-dom';
 import {child, onValue, update} from 'firebase/database';
 import VotingBlock from './VotingBlock';
 import Controls from './Controls';
+import VotingTimer from './VotingTimer';
 import {formatEditHistory} from '@/utils/timeAgo';
 import {useInlineEdit} from '@/hooks/useInlineEdit';
 import type { ParticipantRole } from '@/types';
@@ -27,6 +28,12 @@ interface VotingScale {
 	customValues?: string;
 }
 
+interface TimerSettings {
+	enabled: boolean;
+	duration: number;
+	onExpire?: 'justStop' | 'lockVoting' | 'autoReveal';
+}
+
 interface IssueProps {
 	issue: string | boolean;
 	participants?: IssueParticipant[];
@@ -34,9 +41,10 @@ interface IssueProps {
 	onToggleRole?: () => void;
 	onActivity?: () => void;
 	votingScale?: VotingScale;
+	timerSettings?: TimerSettings;
 }
 
-const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onActivity, votingScale}: IssueProps) => {
+const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onActivity, votingScale, timerSettings}: IssueProps) => {
 	const {userId, tableId} = useParams<{ userId: string; tableId: string }>();
 	const currentUser = auth.auth.currentUser;
 	const isTableOwner = currentUser && userId === currentUser.uid;
@@ -49,6 +57,11 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 		finalScore: null as number | null,
 		lastEdited: null as string | null,
 		lastEditedByName: null as string | null,
+		timer: {
+			isActive: false,
+			startedAt: null as string | null,
+			remainingSeconds: null as number | null,
+		},
 	});
 	const [votesState, setVotesState] = useState<{
 		isLoaded: boolean;
@@ -125,6 +138,11 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 				finalScore: issue.finalScore !== undefined ? issue.finalScore : null,
 				lastEdited: issue.lastEdited || null,
 				lastEditedByName: issue.lastEditedByName || null,
+				timer: {
+					isActive: issue.timer?.isActive || false,
+					startedAt: issue.timer?.startedAt || null,
+					remainingSeconds: issue.timer?.remainingSeconds || null,
+				},
 				isLoaded: true,
 			};
 			setIssueState(newState);
@@ -241,6 +259,82 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 			});
 	};
 
+	// Timer control handlers
+	const handleTimerToggle = async () => {
+		if (!currentUser || !isTableOwner) return;
+
+		const newIsActive = !issueState.timer.isActive;
+		const timerData = {
+			isActive: newIsActive,
+			startedAt: newIsActive ? new Date().toISOString() : issueState.timer.startedAt,
+			remainingSeconds: issueState.timer.remainingSeconds ?? timerSettings?.duration ?? 60,
+		};
+
+		try {
+			await update(issueRef, { timer: timerData });
+			// Update table activity
+			onActivity?.();
+		} catch (error: any) {
+			toast.error('Failed to update timer: ' + error.message);
+		}
+	};
+
+	const handleTimerReset = async () => {
+		if (!currentUser || !isTableOwner) return;
+
+		const timerData = {
+			isActive: false,
+			startedAt: null,
+			remainingSeconds: timerSettings?.duration ?? 60,
+		};
+
+		try {
+			await update(issueRef, { timer: timerData });
+			// Update table activity
+			onActivity?.();
+		} catch (error: any) {
+			toast.error('Failed to reset timer: ' + error.message);
+		}
+	};
+
+	const handleTimerExpire = async () => {
+		if (!currentUser || !isTableOwner) return;
+
+		// Play notification sound/show alert
+		toast('⏰ Time\'s up!', {
+			icon: '⏰',
+			duration: 5000,
+		});
+
+		// Execute configured expiration behavior
+		const expireBehavior = timerSettings?.onExpire || 'justStop';
+
+		try {
+			if (expireBehavior === 'autoReveal') {
+				// Auto-reveal votes
+				await update(issueRef, {
+					showVotes: true,
+					timer: { ...issueState.timer, isActive: false }
+				});
+			} else if (expireBehavior === 'lockVoting') {
+				// Lock voting
+				await update(issueRef, {
+					isLocked: true,
+					timer: { ...issueState.timer, isActive: false }
+				});
+			} else {
+				// Just stop timer
+				await update(issueRef, {
+					timer: { ...issueState.timer, isActive: false }
+				});
+			}
+			// Update table activity
+			onActivity?.();
+		} catch (error: any) {
+			toast.error('Failed to handle timer expiration: ' + error.message);
+		}
+	};
+
 
 	//suggestion() {
 	//let suggestion = '??';
@@ -334,6 +428,18 @@ const Issue = ({issue, participants = [], userRole = 'voter', onToggleRole, onAc
 					<Trophy size={22} />
 					<span className="font-semibold">Final Score: {issueState.finalScore}</span>
 				</div>
+			)}
+
+			{/* Voting Timer */}
+			{timerSettings?.enabled && (
+				<VotingTimer
+					duration={timerSettings.duration}
+					isActive={issueState.timer.isActive}
+					onExpire={handleTimerExpire}
+					onToggle={handleTimerToggle}
+					onReset={handleTimerReset}
+					isHost={isTableOwner || false}
+				/>
 			)}
 
 			{/* Participants Vote Status */}

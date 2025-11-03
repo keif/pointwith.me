@@ -79,8 +79,10 @@ build/
 # notes
 _notes
 
-# Claude Code settings
-.claude/
+# Claude Code settings (only ignore local settings and node_modules)
+.claude/settings.local.json
+.claude/hooks/node_modules/
+.claude/hooks/package-lock.json
 
 # Local Netlify folder
 .netlify
