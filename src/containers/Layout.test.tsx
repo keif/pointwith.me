@@ -12,7 +12,15 @@ vi.mock('../firebase', () => ({
 				currentUser: {
 					uid: 'testUserId',
 					displayName: 'Test User'
-				}
+				},
+				onAuthStateChanged: vi.fn((callback) => {
+					callback({
+						uid: 'testUserId',
+						displayName: 'Test User'
+					});
+					return vi.fn(); // unsubscribe function
+				}),
+				signOut: vi.fn()
 			};
 		}
 	}

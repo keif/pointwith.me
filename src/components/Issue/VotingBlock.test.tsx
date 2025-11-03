@@ -20,33 +20,42 @@ describe('VotingBlock component', () => {
 
 	test('renders correctly', () => {
 		// Render the component
-		const { getByText } = render(
+		const { getAllByRole } = render(
 			<VotingBlock onClick={mockOnClick} isLocked={false} userVote={null} />
 		);
 
-		// Check if the component renders with the correct points
-		expect(getByText('1')).toBeInTheDocument();
-		expect(getByText('2')).toBeInTheDocument();
-		expect(getByText('3')).toBeInTheDocument();
-		expect(getByText('5')).toBeInTheDocument();
-		expect(getByText('8')).toBeInTheDocument();
+		// Check if the component renders the correct number of voting buttons
+		// 8 fibonacci values + 1 abstain button = 9 total
+		const buttons = getAllByRole('button');
+		expect(buttons).toHaveLength(9);
+
+		// Check that specific vote values are present in button text content
+		const allText = buttons.map(btn => btn.textContent || '').join(' ');
+		expect(allText).toContain('1');
+		expect(allText).toContain('2');
+		expect(allText).toContain('3');
+		expect(allText).toContain('5');
+		expect(allText).toContain('8');
 	});
 
 	test('handles click event to show selected card', () => {
 		// Render the component
-		const { getByText, getByTestId } = render(
+		const { getAllByRole } = render(
 			<VotingBlock onClick={mockOnClick} isLocked={false} userVote={null} />
 		);
 
-		// Simulate a click event on a card
-		fireEvent.click(getByText('5'));
+		// Find the button with value 5 (buttons contain both the number and keyboard hint)
+		const buttons = getAllByRole('button');
+		const button5 = buttons.find(btn => btn.textContent?.startsWith('5'));
+
+		// Simulate a click event on the card
+		fireEvent.click(button5!);
 
 		// Check if the onClick function is called with the correct argument
 		expect(mockOnClick).toHaveBeenCalledWith(5);
 
 		// Check if the card with the selected value has success (green) styling
-		const button = getByText('5');
-		expect(button.className).toContain('bg-success');
-		expect(button.className).toContain('scale-105');
+		expect(button5!.className).toContain('bg-success');
+		expect(button5!.className).toContain('scale-105');
 	});
 });

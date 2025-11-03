@@ -7,8 +7,17 @@ import { MemoryRouter } from 'react-router-dom';
 
 // Mock necessary modules and functions
 vi.mock('firebase/database', () => ({
+	getDatabase: vi.fn(() => ({})),
+	ref: vi.fn((db, path) => ({ path })),
+	get: vi.fn(() => Promise.resolve({ exists: () => false, val: () => null })),
 	onValue: vi.fn(),
-	set: vi.fn()
+	set: vi.fn(() => Promise.resolve()),
+	update: vi.fn(() => Promise.resolve()),
+	remove: vi.fn(() => Promise.resolve()),
+	onDisconnect: vi.fn(() => ({
+		remove: vi.fn(() => Promise.resolve())
+	})),
+	child: vi.fn()
 }));
 
 vi.mock('@/containers/Layout', () => ({
@@ -54,7 +63,11 @@ vi.mock('shortid', () => ({
 describe('Dashboard Page', () => {
 	test('renders Dashboard component', async () => {
 		// Render the component
-		const {getByText} = render(<Dashboard/>);
+		const {getByText} = render(
+			<MemoryRouter>
+				<Dashboard/>
+			</MemoryRouter>
+		);
 
 		// Verify that the component renders correctly
 		expect(getByText('Your Poker Tables')).toBeInTheDocument();

@@ -8,12 +8,14 @@ import {PokerTable} from './index';
 // Mocks
 vi.mock('firebase/database', () => ({
 	getDatabase: vi.fn(() => ({})),
+	ref: vi.fn((db, path) => ({ path })),
+	get: vi.fn(() => Promise.resolve({ exists: () => false, val: () => null })),
 	onValue: vi.fn(),
-	set: vi.fn(),
-	update: vi.fn(),
-	remove: vi.fn(),
+	set: vi.fn(() => Promise.resolve()),
+	update: vi.fn(() => Promise.resolve()),
+	remove: vi.fn(() => Promise.resolve()),
 	onDisconnect: vi.fn(() => ({
-		remove: vi.fn()
+		remove: vi.fn(() => Promise.resolve())
 	})),
 	child: vi.fn()
 }));
