@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {format} from 'date-fns';
-import {X, Download, Info} from 'lucide-react';
+import {X, Download, Info, Zap} from 'lucide-react';
 import {onValue, set} from 'firebase/database';
 import shortid from 'shortid';
 import toast from 'react-hot-toast';
@@ -205,6 +205,25 @@ const Dashboard = () => {
 	return (
 		<Layout data-testid={`Dashboard`}>
 			<div className="space-y-6">
+				{/* Jira Integration Notice (only show if not connected) */}
+				{!isConnected && (
+					<div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 flex items-start gap-3">
+						<Zap size={20} className="text-purple-600 flex-shrink-0 mt-0.5" />
+						<div className="flex-1">
+							<h3 className="font-semibold text-purple-900 mb-1">Jira Integration Available</h3>
+							<p className="text-sm text-purple-800 mb-2">
+								Import issues from Jira and automatically push estimates back. Save time and keep your workflow in sync.
+							</p>
+							<Link
+								to="/settings"
+								className="inline-block text-sm font-semibold text-purple-700 hover:text-purple-900 underline"
+							>
+								Connect Jira in Settings →
+							</Link>
+						</div>
+					</div>
+				)}
+
 				{/* Data Retention Notice */}
 				<div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
 					<Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />

@@ -32,11 +32,18 @@ const Login = () => {
 					{/* What is it? Card */}
 					<div className="card text-center">
 						<h2 className="text-2xl font-bold mb-4">What is it?</h2>
-						<p className="text-gray-700">
+						<p className="text-gray-700 mb-4">
 							PointPal.app is a way for remote teams to story point quickly and easily.
 							Someone "Drives" your session and all the players open the link on their
 							phone/desktop and just point issues as they cycle through
 						</p>
+						<div className="mt-4 pt-4 border-t border-gray-200">
+							<p className="text-sm font-semibold text-primary mb-2">✨ Jira Integration Available</p>
+							<p className="text-sm text-gray-600">
+								Import issues directly from Jira and push estimates back automatically.
+								Connect your Jira account in Settings after signing in.
+							</p>
+						</div>
 					</div>
 
 					{/* Sign In Card */}
