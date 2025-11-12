@@ -96,14 +96,14 @@ const Layout = ({children, contentCenter = false}: LayoutProps) => {
 				<div className="container-centered">
 					<div className="flex flex-col items-center gap-4">
 						<div className="flex items-center gap-4">
-							<a
+							{/* <a
 								href="https://twitter.com/pointwithme"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-gray-600 hover:text-primary transition-colors"
 							>
 								<Twitter size={20} />
-							</a>
+							</a> */}
 							<a
 								href="https://github.com/keif/pointwith.me"
 								target="_blank"
