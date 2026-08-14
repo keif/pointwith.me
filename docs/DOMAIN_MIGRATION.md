@@ -148,7 +148,7 @@ Netlify will automatically deploy when you push to your connected Git branch.
 # Push latest commits
 git add -A
 git commit -m "chore: migrate domain to pointpal.app (Netlify)"
-git push origin master
+git push origin main
 ```
 
 Netlify will:
