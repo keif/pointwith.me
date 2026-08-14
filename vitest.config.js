@@ -14,5 +14,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
     css: true,
+    // requires the Firebase emulator; run separately via `pnpm test:rules`
+    exclude: ['**/node_modules/**', 'tests/database.rules.test.ts'],
   },
 });
